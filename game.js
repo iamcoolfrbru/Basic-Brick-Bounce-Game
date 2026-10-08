@@ -11,6 +11,9 @@ const ctx = canvas.getContext("2d");
 
 const WIDTH = canvas.width;   // 600
 const HEIGHT = canvas.height; // 450
+const MAX_LIVES = 3;
+const livesDisplay = document.getElementById("lives");
+let lives = MAX_LIVES;
 
 
 // ------------------------------------------------------------
@@ -60,6 +63,15 @@ function restartGame() {
   bricks = makeBricks();
   resetBall();
   paddle.x = WIDTH / 2 - paddle.width / 2;
+  lives = MAX_LIVES;
+  updateLivesDisplay();
+}
+
+function updateLivesDisplay() {
+  for (let index = 0; index < livesDisplay.children.length; index++) {
+    livesDisplay.children[index].classList.toggle("lost", index >= lives);
+  }
+  livesDisplay.setAttribute("aria-label", `${lives} lives remaining`);
 }
 
 
@@ -99,7 +111,13 @@ function update() {
 
   // The ball fell off the bottom: back to the center.
   if (ball.y > HEIGHT) {
-    resetBall();
+    lives--;
+    if (lives === 0) {
+      restartGame();
+    } else {
+      updateLivesDisplay();
+      resetBall();
+    }
   }
 }
 

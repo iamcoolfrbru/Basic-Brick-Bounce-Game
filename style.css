@@ -29,6 +29,27 @@ canvas {
   background: #000;
 }
 
+.lives {
+  display: flex;
+  height: 24px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.life-ball {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.life-ball.lost {
+  background: transparent;
+}
+
 p {
   margin: 12px 0 0;
   font-size: 14px;

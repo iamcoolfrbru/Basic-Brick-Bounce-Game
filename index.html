@@ -8,7 +8,14 @@
 </head>
 <body>
   <main>
-    <canvas id="game" width="600" height="450" aria-label="Block Breaker game"></canvas>
+    <div class="game-area">
+      <div id="lives" class="lives" role="img" aria-label="3 lives remaining">
+        <span class="life-ball" aria-hidden="true"></span>
+        <span class="life-ball" aria-hidden="true"></span>
+        <span class="life-ball" aria-hidden="true"></span>
+      </div>
+      <canvas id="game" width="600" height="450" aria-label="Block Breaker game"></canvas>
+    </div>
     <p>Move the paddle with the left and right arrow keys, or A and D.</p>
   </main>
 
