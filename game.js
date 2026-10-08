@@ -56,6 +56,12 @@ const paddle = {
 // ------------------------------------------------------------
 let bricks = [];
 
+function restartGame() {
+  bricks = makeBricks();
+  resetBall();
+  paddle.x = WIDTH / 2 - paddle.width / 2;
+}
+
 
 // ------------------------------------------------------------
 // KEYBOARD
@@ -65,6 +71,9 @@ const keys = {};
 
 document.addEventListener("keydown", function (event) {
   keys[event.key.toLowerCase()] = true;
+  if (event.key.toLowerCase() === "r" && !event.repeat) {
+    restartGame();
+  }
   // Stop the arrow keys from scrolling the page.
   if (event.key.startsWith("Arrow")) {
     event.preventDefault();
@@ -162,8 +171,7 @@ function frame(now) {
 }
 
 function start() {
-  bricks = makeBricks();  // bricks.js
-  resetBall();
+  restartGame();
   lastTime = performance.now();
   requestAnimationFrame(frame);
 }
