@@ -8,6 +8,8 @@
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+const starfieldCanvas = document.getElementById("starfield");
+const starfieldCtx = starfieldCanvas.getContext("2d");
 
 const WIDTH = canvas.width;   // 600
 const HEIGHT = canvas.height; // 450
@@ -232,44 +234,43 @@ function createBackgroundStars() {
   backgroundStars.length = 0;
 
   for (let index = 0; index < 90; index++) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = 45 + Math.random() * 200;
-
     backgroundStars.push({
-      x: BLACK_HOLE.x + Math.cos(angle) * radius,
-      y: BLACK_HOLE.y + Math.sin(angle) * radius * 0.75,
-      vx: (Math.random() - 0.5) * 1.2,
-      vy: (Math.random() - 0.5) * 1.2,
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      speed: 0.2 + Math.random() * 0.4,
       size: Math.random() * 2.2 + 0.8,
-      alpha: Math.random() * 0.8 + 0.2,
-      swirl: (Math.random() - 0.5) * 0.05,
-      angle: angle
+      alpha: Math.random() * 0.8 + 0.2
     });
   }
 }
 
 function updateBackgroundStars() {
   for (const star of backgroundStars) {
-    const dx = BLACK_HOLE.x - star.x;
-    const dy = BLACK_HOLE.y - star.y;
-    const distSq = dx * dx + dy * dy + 200;
+    star.y -= star.speed;
 
-    star.vx += (dx / distSq) * 220;
-    star.vy += (dy / distSq) * 220;
-    star.vx *= 0.99;
-    star.vy *= 0.99;
-
-    star.x += star.vx;
-    star.y += star.vy;
-    star.angle += star.swirl;
-
-    if (star.x < -20 || star.x > WIDTH + 20 || star.y < -20 || star.y > HEIGHT + 20) {
-      const angle = Math.random() * Math.PI * 2;
-      star.x = BLACK_HOLE.x + Math.cos(angle) * (50 + Math.random() * 180);
-      star.y = BLACK_HOLE.y + Math.sin(angle) * (50 + Math.random() * 120);
-      star.vx = (Math.random() - 0.5) * 1.5;
-      star.vy = (Math.random() - 0.5) * 1.5;
+    if (star.y + star.size < 0) {
+      star.x = Math.random() * window.innerWidth;
+      star.y = window.innerHeight + star.size;
     }
+  }
+}
+
+function resizeBackgroundStars() {
+  const pixelRatio = window.devicePixelRatio || 1;
+  starfieldCanvas.width = Math.round(window.innerWidth * pixelRatio);
+  starfieldCanvas.height = Math.round(window.innerHeight * pixelRatio);
+  starfieldCtx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  createBackgroundStars();
+}
+
+function drawBackgroundStars() {
+  starfieldCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  for (const star of backgroundStars) {
+    starfieldCtx.fillStyle = `rgba(255,255,255,${star.alpha})`;
+    starfieldCtx.beginPath();
+    starfieldCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+    starfieldCtx.fill();
   }
 }
 
@@ -340,20 +341,15 @@ function drawBackground() {
     ctx.restore();
   }
 
-  for (const star of backgroundStars) {
-    ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
 }
 
 function update() {
+  updateBackgroundStars();
+
   if (!gameRunning) {
     return;
   }
 
-  updateBackgroundStars();
   movePaddle();
 
   if (!ballLaunched) {
@@ -442,6 +438,7 @@ function frame(now) {
   }
 
   draw();
+  drawBackgroundStars();
   requestAnimationFrame(frame);
 }
 
@@ -511,7 +508,8 @@ function bindMenuControls() {
 
 function start() {
   populateWallpaperOptions();
-  createBackgroundStars();
+  resizeBackgroundStars();
+  window.addEventListener("resize", resizeBackgroundStars);
   applySettings();
   bindMenuControls();
   setActiveTab("main");
