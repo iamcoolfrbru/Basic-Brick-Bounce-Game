@@ -65,19 +65,23 @@ const wallpaperOptions = [
 const wallpapers = {
   "black-hole": {
     glow: "rgba(255,255,255,0.20)",
-    dark: "#000000"
+    dark: "#000000",
+    accents: ["#ffe08a", "#ff8c42"]
   },
   nebula: {
     glow: "rgba(75, 120, 255, 0.20)",
-    dark: "#040713"
+    dark: "#040713",
+    accents: ["#ff75d8", "#8e7bff"]
   },
   crimson: {
     glow: "rgba(255, 100, 80, 0.18)",
-    dark: "#140606"
+    dark: "#140606",
+    accents: ["#ff6b8a", "#ffa45b"]
   },
   midnight: {
     glow: "rgba(180, 180, 255, 0.16)",
-    dark: "#01030b"
+    dark: "#01030b",
+    accents: ["#65e6ff", "#ffd166"]
   }
 };
 
@@ -343,6 +347,18 @@ function drawBackground() {
 
 }
 
+function getAccentColor(time) {
+  const [from, to] = (wallpapers[settings.wallpaper] || wallpapers["black-hole"]).accents;
+  const amount = (1 - Math.cos((Math.PI * time) / 4000)) / 2;
+  const fromRgb = from.match(/[a-f\d]{2}/gi).map((channel) => parseInt(channel, 16));
+  const toRgb = to.match(/[a-f\d]{2}/gi).map((channel) => parseInt(channel, 16));
+  const color = fromRgb.map((channel, index) =>
+    Math.round(channel + (toRgb[index] - channel) * amount)
+  );
+
+  return `rgb(${color.join(",")})`;
+}
+
 function update() {
   updateBackgroundStars();
 
@@ -399,17 +415,17 @@ function moveBall() {
 
 
 // ------------------------------------------------------------
-// DRAW: paints everything on the canvas. Black background,
-// white shapes.
+// DRAW: paints the wallpaper and game objects on the canvas.
 // ------------------------------------------------------------
-function draw() {
+function draw(time) {
   drawBackground();
 
-  ctx.fillStyle = "white";
+  const accentColor = getAccentColor(time);
+  ctx.fillStyle = accentColor;
   ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
   ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
 
-  drawBricks();  // bricks.js
+  drawBricks(accentColor);  // bricks.js
 }
 
 
@@ -437,7 +453,7 @@ function frame(now) {
     leftover = leftover - STEP;
   }
 
-  draw();
+  draw(now);
   drawBackgroundStars();
   requestAnimationFrame(frame);
 }
