@@ -23,6 +23,7 @@ let lives = MAX_LIVES;
 // A positive vy means the ball is moving DOWN the screen.
 // ------------------------------------------------------------
 const BALL_SPEED = 4;
+let ballLaunched = false;
 
 const ball = {
   x: 0,
@@ -33,12 +34,23 @@ const ball = {
   vy: 0
 };
 
-// Put the ball in the center and reset its speed and direction.
+// Put the ball on top of the paddle, centered, and wait for launch.
 function resetBall() {
-  ball.x = WIDTH / 2 - ball.width / 2;
-  ball.y = HEIGHT / 2 - ball.height / 2;
+  ballLaunched = false;
+  ball.x = paddle.x + paddle.width / 2 - ball.width / 2;
+  ball.y = paddle.y - ball.height;
   ball.vx = BALL_SPEED;  // right
   ball.vy = BALL_SPEED;  // down
+}
+
+function launchBall() {
+  if (ballLaunched) {
+    return;
+  }
+
+  ballLaunched = true;
+  ball.vx = BALL_SPEED * (Math.random() < 0.5 ? -1 : 1);
+  ball.vy = -BALL_SPEED;  // up
 }
 
 
@@ -82,10 +94,17 @@ function updateLivesDisplay() {
 const keys = {};
 
 document.addEventListener("keydown", function (event) {
-  keys[event.key.toLowerCase()] = true;
-  if (event.key.toLowerCase() === "r" && !event.repeat) {
+  const key = event.key.toLowerCase();
+  keys[key] = true;
+
+  if (key === "r" && !event.repeat) {
     restartGame();
   }
+
+  if (event.code === "Space" && !event.repeat) {
+    launchBall();
+  }
+
   // Stop the arrow keys from scrolling the page.
   if (event.key.startsWith("Arrow")) {
     event.preventDefault();
@@ -103,20 +122,26 @@ document.addEventListener("keyup", function (event) {
 // ------------------------------------------------------------
 function update() {
   movePaddle();
-  moveBall();
 
-  bounceOffWalls();   // collisions.js
-  bounceOffPaddle();  // collisions.js
-  bounceOffBricks();  // collisions.js
+  if (!ballLaunched) {
+    ball.x = paddle.x + paddle.width / 2 - ball.width / 2;
+    ball.y = paddle.y - ball.height;
+  } else {
+    moveBall();
 
-  // The ball fell off the bottom: back to the center.
-  if (ball.y > HEIGHT) {
-    lives--;
-    if (lives === 0) {
-      restartGame();
-    } else {
-      updateLivesDisplay();
-      resetBall();
+    bounceOffWalls();   // collisions.js
+    bounceOffPaddle();  // collisions.js
+    bounceOffBricks();  // collisions.js
+
+    // The ball fell off the bottom: back to the center.
+    if (ball.y > HEIGHT) {
+      lives--;
+      if (lives === 0) {
+        restartGame();
+      } else {
+        updateLivesDisplay();
+        resetBall();
+      }
     }
   }
 }
