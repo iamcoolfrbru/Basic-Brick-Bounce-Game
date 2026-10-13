@@ -18,7 +18,7 @@ const blackHoleImage = new Image();
 let blackHoleImageLoaded = false;
 let lives = MAX_LIVES;
 
-blackHoleImage.src = "assets/black-hole.png";
+blackHoleImage.src = "assets/wallpapersden.com_sci-fi-black-hole-hd-glowing-space_1920x1080.jpg";
 blackHoleImage.onload = function () {
   blackHoleImageLoaded = true;
 };
