@@ -46,17 +46,17 @@ const wallpaperOptions = [
   {
     id: "nebula",
     label: "Nebula",
-    src: "assets/nebula.jpg"
+    src: "assets/wp4816769.jpg"
   },
   {
     id: "crimson",
     label: "Crimson Drift",
-    src: "assets/crimson-drift.jpg"
+    src: "assets/thumb-1920-1007640.jpg"
   },
   {
     id: "midnight",
     label: "Midnight",
-    src: "assets/midnight.jpg"
+    src: "assets/midnight-sunrise-4k-b1.jpg"
   }
 ];
 
@@ -278,22 +278,7 @@ function drawBackgroundImage(image, width, height) {
     return;
   }
 
-  const imageAspect = image.width / image.height;
-  const canvasAspect = width / height;
-  let drawWidth = width;
-  let drawHeight = height;
-
-  if (imageAspect > canvasAspect) {
-    drawHeight = height;
-    drawWidth = height * imageAspect;
-  } else {
-    drawWidth = width;
-    drawHeight = width / imageAspect;
-  }
-
-  const x = (width - drawWidth) / 2;
-  const y = (height - drawHeight) / 2;
-  ctx.drawImage(image, x, y, drawWidth, drawHeight);
+  ctx.drawImage(image, 0, 0, width, height);
 }
 
 function drawBackground() {
