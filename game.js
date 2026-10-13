@@ -13,7 +13,14 @@ const WIDTH = canvas.width;   // 600
 const HEIGHT = canvas.height; // 450
 const MAX_LIVES = 3;
 const livesDisplay = document.getElementById("lives");
+const backgroundStars = [];
 let lives = MAX_LIVES;
+
+const BLACK_HOLE = {
+  x: WIDTH * 0.76,
+  y: HEIGHT * 0.45,
+  radius: 62
+};
 
 
 // ------------------------------------------------------------
@@ -120,7 +127,105 @@ document.addEventListener("keyup", function (event) {
 // UPDATE: runs 60 times every second. Move things, then check
 // what they touched.
 // ------------------------------------------------------------
+function createBackgroundStars() {
+  backgroundStars.length = 0;
+
+  for (let index = 0; index < 90; index++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 45 + Math.random() * 200;
+
+    backgroundStars.push({
+      x: BLACK_HOLE.x + Math.cos(angle) * radius,
+      y: BLACK_HOLE.y + Math.sin(angle) * radius * 0.75,
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: (Math.random() - 0.5) * 1.2,
+      size: Math.random() * 2.2 + 0.8,
+      alpha: Math.random() * 0.8 + 0.2,
+      swirl: (Math.random() - 0.5) * 0.05,
+      angle: angle
+    });
+  }
+}
+
+function updateBackgroundStars() {
+  for (const star of backgroundStars) {
+    const dx = BLACK_HOLE.x - star.x;
+    const dy = BLACK_HOLE.y - star.y;
+    const distSq = dx * dx + dy * dy + 200;
+
+    star.vx += (dx / distSq) * 220;
+    star.vy += (dy / distSq) * 220;
+    star.vx *= 0.99;
+    star.vy *= 0.99;
+
+    star.x += star.vx;
+    star.y += star.vy;
+    star.angle += star.swirl;
+
+    if (star.x < -20 || star.x > WIDTH + 20 || star.y < -20 || star.y > HEIGHT + 20) {
+      const angle = Math.random() * Math.PI * 2;
+      star.x = BLACK_HOLE.x + Math.cos(angle) * (50 + Math.random() * 180);
+      star.y = BLACK_HOLE.y + Math.sin(angle) * (50 + Math.random() * 120);
+      star.vx = (Math.random() - 0.5) * 1.5;
+      star.vy = (Math.random() - 0.5) * 1.5;
+    }
+  }
+}
+
+function drawBackground() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  const spaceGlow = ctx.createRadialGradient(
+    BLACK_HOLE.x,
+    BLACK_HOLE.y,
+    15,
+    BLACK_HOLE.x,
+    BLACK_HOLE.y,
+    240
+  );
+  spaceGlow.addColorStop(0, "rgba(255,255,255,0.20)");
+  spaceGlow.addColorStop(0.12, "rgba(255,255,255,0.08)");
+  spaceGlow.addColorStop(0.28, "rgba(50,50,70,0.16)");
+  spaceGlow.addColorStop(1, "rgba(0,0,0,0.96)");
+  ctx.fillStyle = spaceGlow;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  ctx.save();
+  ctx.translate(BLACK_HOLE.x, BLACK_HOLE.y);
+
+  const blackHole = ctx.createRadialGradient(0, 0, 10, 0, 0, BLACK_HOLE.radius + 30);
+  blackHole.addColorStop(0, "rgba(0,0,0,1)");
+  blackHole.addColorStop(0.22, "rgba(0,0,0,0.96)");
+  blackHole.addColorStop(0.7, "rgba(10,10,18,0.35)");
+  blackHole.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = blackHole;
+  ctx.beginPath();
+  ctx.arc(0, 0, BLACK_HOLE.radius + 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, BLACK_HOLE.radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(0, 0, BLACK_HOLE.radius + 18, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.stroke();
+  ctx.restore();
+
+  for (const star of backgroundStars) {
+    ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 function update() {
+  updateBackgroundStars();
   movePaddle();
 
   if (!ballLaunched) {
@@ -174,8 +279,7 @@ function moveBall() {
 // white shapes.
 // ------------------------------------------------------------
 function draw() {
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  drawBackground();
 
   ctx.fillStyle = "white";
   ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
@@ -214,6 +318,7 @@ function frame(now) {
 }
 
 function start() {
+  createBackgroundStars();
   restartGame();
   lastTime = performance.now();
   requestAnimationFrame(frame);
