@@ -9,6 +9,52 @@
 <body>
   <main>
     <div class="game-area">
+      <div id="menuOverlay" class="menu-overlay visible">
+        <div class="menu-panel">
+          <h1>Block Breaker</h1>
+
+          <div class="tab-bar" aria-label="Game menu tabs">
+            <button type="button" class="tab-button active" data-tab="main">Main</button>
+            <button type="button" class="tab-button" data-tab="settings">Settings</button>
+          </div>
+
+          <div id="mainTab" class="tab-panel active">
+            <p>Launch the ball with Space and break the bricks.</p>
+            <button id="startButton" class="primary-button" type="button">Start Game</button>
+          </div>
+
+          <div id="settingsTab" class="tab-panel">
+            <label class="setting-row">
+              <span>Wallpaper</span>
+              <select id="wallpaperSelect">
+                <option value="black-hole">Black Hole</option>
+                <option value="nebula">Nebula</option>
+                <option value="crimson">Crimson Drift</option>
+                <option value="midnight">Midnight</option>
+              </select>
+            </label>
+
+            <label class="setting-row">
+              <span>Ball speed</span>
+              <input id="ballSpeedControl" type="range" min="3" max="9" step="1" value="4">
+              <strong id="ballSpeedValue">4</strong>
+            </label>
+
+            <label class="setting-row">
+              <span>Paddle length</span>
+              <input id="paddleLengthControl" type="range" min="60" max="150" step="5" value="90">
+              <strong id="paddleLengthValue">90</strong>
+            </label>
+
+            <label class="setting-row">
+              <span>Paddle speed</span>
+              <input id="paddleSpeedControl" type="range" min="3" max="12" step="1" value="6">
+              <strong id="paddleSpeedValue">6</strong>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div id="lives" class="lives" role="img" aria-label="3 lives remaining">
         <span class="life-ball" aria-hidden="true"></span>
         <span class="life-ball" aria-hidden="true"></span>

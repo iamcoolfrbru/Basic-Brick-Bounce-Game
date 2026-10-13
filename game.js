@@ -13,12 +13,81 @@ const WIDTH = canvas.width;   // 600
 const HEIGHT = canvas.height; // 450
 const MAX_LIVES = 3;
 const livesDisplay = document.getElementById("lives");
+const menuOverlay = document.getElementById("menuOverlay");
+const startButton = document.getElementById("startButton");
+const tabButtons = document.querySelectorAll(".tab-button");
+const tabPanels = document.querySelectorAll(".tab-panel");
+const wallpaperSelect = document.getElementById("wallpaperSelect");
+const ballSpeedControl = document.getElementById("ballSpeedControl");
+const paddleLengthControl = document.getElementById("paddleLengthControl");
+const paddleSpeedControl = document.getElementById("paddleSpeedControl");
+const ballSpeedValue = document.getElementById("ballSpeedValue");
+const paddleLengthValue = document.getElementById("paddleLengthValue");
+const paddleSpeedValue = document.getElementById("paddleSpeedValue");
 const backgroundStars = [];
 const blackHoleImage = new Image();
 let blackHoleImageLoaded = false;
 let lives = MAX_LIVES;
+let gameRunning = false;
 
-blackHoleImage.src = "assets/wallpapersden.com_sci-fi-black-hole-hd-glowing-space_1920x1080.jpg";
+const settings = {
+  wallpaper: "black-hole",
+  ballSpeed: 4,
+  paddleLength: 90,
+  paddleSpeed: 6
+};
+
+const wallpaperOptions = [
+  {
+    id: "black-hole",
+    label: "Black Hole",
+    src: "assets/wallpapersden.com_sci-fi-black-hole-hd-glowing-space_1920x1080.jpg"
+  },
+  {
+    id: "nebula",
+    label: "Nebula",
+    src: "assets/nebula.jpg"
+  },
+  {
+    id: "crimson",
+    label: "Crimson Drift",
+    src: "assets/crimson-drift.jpg"
+  },
+  {
+    id: "midnight",
+    label: "Midnight",
+    src: "assets/midnight.jpg"
+  }
+];
+
+const wallpapers = {
+  "black-hole": {
+    glow: "rgba(255,255,255,0.20)",
+    dark: "#000000"
+  },
+  nebula: {
+    glow: "rgba(75, 120, 255, 0.20)",
+    dark: "#040713"
+  },
+  crimson: {
+    glow: "rgba(255, 100, 80, 0.18)",
+    dark: "#140606"
+  },
+  midnight: {
+    glow: "rgba(180, 180, 255, 0.16)",
+    dark: "#01030b"
+  }
+};
+
+const wallpaperImages = new Map();
+
+for (const entry of wallpaperOptions) {
+  const image = new Image();
+  image.src = entry.src;
+  wallpaperImages.set(entry.id, image);
+}
+
+blackHoleImage.src = wallpaperOptions[0].src;
 blackHoleImage.onload = function () {
   blackHoleImageLoaded = true;
 };
@@ -36,7 +105,6 @@ const BLACK_HOLE = {
 // the ball moves each update (vx = sideways, vy = up/down).
 // A positive vy means the ball is moving DOWN the screen.
 // ------------------------------------------------------------
-const BALL_SPEED = 4;
 let ballLaunched = false;
 
 const ball = {
@@ -53,18 +121,18 @@ function resetBall() {
   ballLaunched = false;
   ball.x = paddle.x + paddle.width / 2 - ball.width / 2;
   ball.y = paddle.y - ball.height;
-  ball.vx = BALL_SPEED;  // right
-  ball.vy = BALL_SPEED;  // down
+  ball.vx = settings.ballSpeed;
+  ball.vy = settings.ballSpeed;
 }
 
 function launchBall() {
-  if (ballLaunched) {
+  if (!gameRunning || ballLaunched) {
     return;
   }
 
   ballLaunched = true;
-  ball.vx = BALL_SPEED * (Math.random() < 0.5 ? -1 : 1);
-  ball.vy = -BALL_SPEED;  // up
+  ball.vx = settings.ballSpeed * (Math.random() < 0.5 ? -1 : 1);
+  ball.vy = -settings.ballSpeed;
 }
 
 
@@ -78,6 +146,30 @@ const paddle = {
   height: 12,
   speed: 6
 };
+
+function applySettings() {
+  paddle.width = settings.paddleLength;
+  paddle.speed = settings.paddleSpeed;
+  ballSpeedValue.textContent = settings.ballSpeed;
+  paddleLengthValue.textContent = settings.paddleLength;
+  paddleSpeedValue.textContent = settings.paddleSpeed;
+
+  const selectedWallpaper = wallpapers[settings.wallpaper] || wallpapers["black-hole"];
+
+  if (selectedWallpaper) {
+    BLACK_HOLE.x = WIDTH * 0.76;
+    BLACK_HOLE.y = HEIGHT * 0.45;
+  }
+
+  if (paddle.x + paddle.width > WIDTH) {
+    paddle.x = WIDTH - paddle.width;
+  }
+
+  if (!ballLaunched) {
+    ball.x = paddle.x + paddle.width / 2 - ball.width / 2;
+    ball.y = paddle.y - ball.height;
+  }
+}
 
 
 // ------------------------------------------------------------
@@ -179,8 +271,32 @@ function updateBackgroundStars() {
   }
 }
 
+function drawBackgroundImage(image, width, height) {
+  if (!image || !image.width) {
+    return;
+  }
+
+  const imageAspect = image.width / image.height;
+  const canvasAspect = width / height;
+  let drawWidth = width;
+  let drawHeight = height;
+
+  if (imageAspect > canvasAspect) {
+    drawHeight = height;
+    drawWidth = height * imageAspect;
+  } else {
+    drawWidth = width;
+    drawHeight = width / imageAspect;
+  }
+
+  const x = (width - drawWidth) / 2;
+  const y = (height - drawHeight) / 2;
+  ctx.drawImage(image, x, y, drawWidth, drawHeight);
+}
+
 function drawBackground() {
-  ctx.fillStyle = "#000";
+  const wallpaper = wallpapers[settings.wallpaper] || wallpapers["black-hole"];
+  ctx.fillStyle = wallpaper.dark;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
   const spaceGlow = ctx.createRadialGradient(
@@ -191,22 +307,24 @@ function drawBackground() {
     BLACK_HOLE.y,
     240
   );
-  spaceGlow.addColorStop(0, "rgba(255,255,255,0.20)");
+  spaceGlow.addColorStop(0, wallpaper.glow);
   spaceGlow.addColorStop(0.12, "rgba(255,255,255,0.08)");
   spaceGlow.addColorStop(0.28, "rgba(50,50,70,0.16)");
-  spaceGlow.addColorStop(1, "rgba(0,0,0,0.96)");
+  spaceGlow.addColorStop(1, wallpaper.dark);
   ctx.fillStyle = spaceGlow;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  if (blackHoleImageLoaded) {
-    const imageWidth = 580;
-    const imageHeight = 430;
-    const imageX = BLACK_HOLE.x - imageWidth / 2;
-    const imageY = BLACK_HOLE.y - imageHeight / 2 + 10;
+  const selectedWallpaper = wallpaperImages.get(settings.wallpaper) || blackHoleImage;
 
+  if (settings.wallpaper === "black-hole" && blackHoleImageLoaded) {
     ctx.save();
-    ctx.globalAlpha = 0.92;
-    ctx.drawImage(blackHoleImage, imageX, imageY, imageWidth, imageHeight);
+    ctx.globalAlpha = 0.96;
+    drawBackgroundImage(blackHoleImage, WIDTH, HEIGHT);
+    ctx.restore();
+  } else if (selectedWallpaper && selectedWallpaper.width) {
+    ctx.save();
+    ctx.globalAlpha = 0.72;
+    drawBackgroundImage(selectedWallpaper, WIDTH, HEIGHT);
     ctx.restore();
   } else {
     ctx.save();
@@ -244,6 +362,10 @@ function drawBackground() {
 }
 
 function update() {
+  if (!gameRunning) {
+    return;
+  }
+
   updateBackgroundStars();
   movePaddle();
 
@@ -336,9 +458,77 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-function start() {
-  createBackgroundStars();
+function startMenu() {
+  menuOverlay.classList.remove("hidden");
+  gameRunning = false;
+}
+
+function startGame() {
+  gameRunning = true;
+  menuOverlay.classList.add("hidden");
   restartGame();
+}
+
+function setActiveTab(tabName) {
+  tabButtons.forEach((button) => {
+    const isActive = button.dataset.tab === tabName;
+    button.classList.toggle("active", isActive);
+  });
+
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle("active", panel.id === `${tabName}Tab`);
+  });
+}
+
+function populateWallpaperOptions() {
+  wallpaperSelect.innerHTML = "";
+
+  for (const option of wallpaperOptions) {
+    const newOption = document.createElement("option");
+    newOption.value = option.id;
+    newOption.textContent = option.label;
+    wallpaperSelect.appendChild(newOption);
+  }
+
+  wallpaperSelect.value = settings.wallpaper;
+}
+
+function bindMenuControls() {
+  startButton.addEventListener("click", startGame);
+
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => setActiveTab(button.dataset.tab));
+  });
+
+  wallpaperSelect.addEventListener("change", function () {
+    settings.wallpaper = wallpaperSelect.value;
+  });
+
+  ballSpeedControl.addEventListener("input", function () {
+    settings.ballSpeed = Number(ballSpeedControl.value);
+    ballSpeedValue.textContent = settings.ballSpeed;
+  });
+
+  paddleLengthControl.addEventListener("input", function () {
+    settings.paddleLength = Number(paddleLengthControl.value);
+    paddleLengthValue.textContent = settings.paddleLength;
+    paddle.width = settings.paddleLength;
+  });
+
+  paddleSpeedControl.addEventListener("input", function () {
+    settings.paddleSpeed = Number(paddleSpeedControl.value);
+    paddleSpeedValue.textContent = settings.paddleSpeed;
+    paddle.speed = settings.paddleSpeed;
+  });
+}
+
+function start() {
+  populateWallpaperOptions();
+  createBackgroundStars();
+  applySettings();
+  bindMenuControls();
+  setActiveTab("main");
+  startMenu();
   lastTime = performance.now();
   requestAnimationFrame(frame);
 }
