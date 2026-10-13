@@ -66,22 +66,22 @@ const wallpapers = {
   "black-hole": {
     glow: "rgba(255,255,255,0.20)",
     dark: "#000000",
-    accents: ["#ffe08a", "#ff8c42"]
+    accents: ["#8be9fd", "#c4a7ff"]
   },
   nebula: {
     glow: "rgba(75, 120, 255, 0.20)",
     dark: "#040713",
-    accents: ["#ff75d8", "#8e7bff"]
+    accents: ["#a78bfa", "#67e8f9"]
   },
   crimson: {
     glow: "rgba(255, 100, 80, 0.18)",
     dark: "#140606",
-    accents: ["#ff6b8a", "#ffa45b"]
+    accents: ["#fb7185", "#c084fc"]
   },
   midnight: {
     glow: "rgba(180, 180, 255, 0.16)",
     dark: "#01030b",
-    accents: ["#65e6ff", "#ffd166"]
+    accents: ["#60a5fa", "#a5b4fc"]
   }
 };
 
@@ -421,11 +421,15 @@ function draw(time) {
   drawBackground();
 
   const accentColor = getAccentColor(time);
+  ctx.save();
   ctx.fillStyle = accentColor;
+  ctx.shadowColor = accentColor;
+  ctx.shadowBlur = 10;
   ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
   ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
 
   drawBricks(accentColor);  // bricks.js
+  ctx.restore();
 }
 
 
