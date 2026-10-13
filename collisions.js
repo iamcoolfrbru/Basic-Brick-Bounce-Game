@@ -46,12 +46,13 @@ function bounceOffPaddle() {
   const ballCenterX = ball.x + ball.width / 2;
   const paddleCenterX = paddle.x + paddle.width / 2;
   const hitOffset = (ballCenterX - paddleCenterX) / (paddle.width / 2);
+  const bounceSpeed = Math.max(settings.ballSpeed, 3);
 
   // Hit near the left edge: angle sharply left.
   // Hit near the right edge: angle sharply right.
   // Hit near the center: mostly straight up.
-  ball.vx = hitOffset * (BALL_SPEED + 1.5);
-  ball.vy = -BALL_SPEED;
+  ball.vx = hitOffset * (bounceSpeed + 2);
+  ball.vy = -bounceSpeed;
   ball.y = paddle.y - ball.height;  // sit on top of the paddle
 }
 

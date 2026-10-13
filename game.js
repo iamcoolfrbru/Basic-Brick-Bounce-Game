@@ -204,6 +204,8 @@ document.addEventListener("keydown", function (event) {
   keys[key] = true;
 
   if (key === "r" && !event.repeat) {
+    gameRunning = true;
+    menuOverlay.classList.add("hidden");
     restartGame();
   }
 
