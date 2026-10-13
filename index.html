@@ -20,11 +20,20 @@
           </div>
 
           <div id="mainTab" class="tab-panel active">
-            <p>Launch the ball with Space and break the bricks.</p>
-            <button id="startButton" class="primary-button" type="button">Start Game</button>
+            <div id="startMenuActions">
+              <p>Launch the ball with Space and break the bricks.</p>
+              <button id="startButton" class="primary-button" type="button">Start Game</button>
+            </div>
+            <div id="pauseMenuActions" class="hidden">
+              <p>Game paused</p>
+              <button id="resumeButton" class="primary-button" type="button">Resume</button>
+              <button id="restartButton" class="primary-button menu-action" type="button">Restart</button>
+              <button id="pauseSettingsButton" class="primary-button menu-action" type="button">Settings</button>
+            </div>
           </div>
 
           <div id="settingsTab" class="tab-panel">
+            <button id="pauseSettingsBack" class="primary-button menu-action hidden" type="button">Back to Pause Menu</button>
             <label class="setting-row">
               <span>Wallpaper</span>
               <select id="wallpaperSelect">
@@ -56,6 +65,7 @@
         </div>
       </div>
 
+      <button id="pauseButton" class="pause-button hidden" type="button" aria-label="Pause game">Pause</button>
       <div id="lives" class="lives" role="img" aria-label="3 lives remaining">
         <span class="life-ball" aria-hidden="true"></span>
         <span class="life-ball" aria-hidden="true"></span>
@@ -63,7 +73,7 @@
       </div>
       <canvas id="game" width="600" height="450" aria-label="Block Breaker game"></canvas>
     </div>
-    <p>Move the paddle with the left and right arrow keys, or A and D.</p>
+    <p>Move the paddle with the left and right arrow keys, or A and D. Press Escape to pause.</p>
   </main>
 
   <!-- The order matters: game.js goes first because the other files use its settings. -->

@@ -149,6 +149,27 @@ canvas#starfield {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.menu-action {
+  margin-top: 10px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.pause-button {
+  position: absolute;
+  top: 34px;
+  right: 8px;
+  z-index: 2;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
 .setting-row {
   display: grid;
   grid-template-columns: 1fr auto;

@@ -17,6 +17,13 @@ const MAX_LIVES = 3;
 const livesDisplay = document.getElementById("lives");
 const menuOverlay = document.getElementById("menuOverlay");
 const startButton = document.getElementById("startButton");
+const pauseButton = document.getElementById("pauseButton");
+const resumeButton = document.getElementById("resumeButton");
+const restartButton = document.getElementById("restartButton");
+const pauseSettingsButton = document.getElementById("pauseSettingsButton");
+const pauseSettingsBack = document.getElementById("pauseSettingsBack");
+const startMenuActions = document.getElementById("startMenuActions");
+const pauseMenuActions = document.getElementById("pauseMenuActions");
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const wallpaperSelect = document.getElementById("wallpaperSelect");
@@ -31,6 +38,7 @@ const blackHoleImage = new Image();
 let blackHoleImageLoaded = false;
 let lives = MAX_LIVES;
 let gameRunning = false;
+let gamePaused = false;
 
 const settings = {
   wallpaper: "black-hole",
@@ -207,11 +215,24 @@ const keys = {};
 
 document.addEventListener("keydown", function (event) {
   const key = event.key.toLowerCase();
+
+  if (key === "escape" && !event.repeat) {
+    event.preventDefault();
+    if (gameRunning) {
+      pauseGame();
+    } else if (gamePaused) {
+      resumeGame();
+    }
+    return;
+  }
+
   keys[key] = true;
 
   if (key === "r" && !event.repeat) {
+    gamePaused = false;
     gameRunning = true;
     menuOverlay.classList.add("hidden");
+    pauseButton.classList.remove("hidden");
     restartGame();
   }
 
@@ -463,13 +484,57 @@ function frame(now) {
 }
 
 function startMenu() {
+  gamePaused = false;
   menuOverlay.classList.remove("hidden");
   gameRunning = false;
+  pauseButton.classList.add("hidden");
+  startMenuActions.classList.remove("hidden");
+  pauseMenuActions.classList.add("hidden");
+  pauseSettingsBack.classList.add("hidden");
 }
 
 function startGame() {
+  gamePaused = false;
   gameRunning = true;
   menuOverlay.classList.add("hidden");
+  pauseButton.classList.remove("hidden");
+  restartGame();
+}
+
+function pauseGame() {
+  if (!gameRunning) {
+    return;
+  }
+
+  gameRunning = false;
+  gamePaused = true;
+  Object.keys(keys).forEach((key) => {
+    keys[key] = false;
+  });
+  startMenuActions.classList.add("hidden");
+  pauseMenuActions.classList.remove("hidden");
+  pauseSettingsBack.classList.remove("hidden");
+  setActiveTab("main");
+  menuOverlay.classList.remove("hidden");
+  pauseButton.classList.add("hidden");
+}
+
+function resumeGame() {
+  if (!gamePaused) {
+    return;
+  }
+
+  gamePaused = false;
+  gameRunning = true;
+  menuOverlay.classList.add("hidden");
+  pauseButton.classList.remove("hidden");
+}
+
+function restartPausedGame() {
+  gamePaused = false;
+  gameRunning = true;
+  menuOverlay.classList.add("hidden");
+  pauseButton.classList.remove("hidden");
   restartGame();
 }
 
@@ -499,6 +564,11 @@ function populateWallpaperOptions() {
 
 function bindMenuControls() {
   startButton.addEventListener("click", startGame);
+  pauseButton.addEventListener("click", pauseGame);
+  resumeButton.addEventListener("click", resumeGame);
+  restartButton.addEventListener("click", restartPausedGame);
+  pauseSettingsButton.addEventListener("click", () => setActiveTab("settings"));
+  pauseSettingsBack.addEventListener("click", () => setActiveTab("main"));
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveTab(button.dataset.tab));
