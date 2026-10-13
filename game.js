@@ -14,7 +14,14 @@ const HEIGHT = canvas.height; // 450
 const MAX_LIVES = 3;
 const livesDisplay = document.getElementById("lives");
 const backgroundStars = [];
+const blackHoleImage = new Image();
+let blackHoleImageLoaded = false;
 let lives = MAX_LIVES;
+
+blackHoleImage.src = "assets/black-hole.png";
+blackHoleImage.onload = function () {
+  blackHoleImageLoaded = true;
+};
 
 const BLACK_HOLE = {
   x: WIDTH * 0.76,
@@ -191,30 +198,42 @@ function drawBackground() {
   ctx.fillStyle = spaceGlow;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  ctx.save();
-  ctx.translate(BLACK_HOLE.x, BLACK_HOLE.y);
+  if (blackHoleImageLoaded) {
+    const imageWidth = 580;
+    const imageHeight = 430;
+    const imageX = BLACK_HOLE.x - imageWidth / 2;
+    const imageY = BLACK_HOLE.y - imageHeight / 2 + 10;
 
-  const blackHole = ctx.createRadialGradient(0, 0, 10, 0, 0, BLACK_HOLE.radius + 30);
-  blackHole.addColorStop(0, "rgba(0,0,0,1)");
-  blackHole.addColorStop(0.22, "rgba(0,0,0,0.96)");
-  blackHole.addColorStop(0.7, "rgba(10,10,18,0.35)");
-  blackHole.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = blackHole;
-  ctx.beginPath();
-  ctx.arc(0, 0, BLACK_HOLE.radius + 30, 0, Math.PI * 2);
-  ctx.fill();
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.drawImage(blackHoleImage, imageX, imageY, imageWidth, imageHeight);
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.translate(BLACK_HOLE.x, BLACK_HOLE.y);
 
-  ctx.strokeStyle = "rgba(255,255,255,0.18)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(0, 0, BLACK_HOLE.radius, 0, Math.PI * 2);
-  ctx.stroke();
+    const blackHole = ctx.createRadialGradient(0, 0, 10, 0, 0, BLACK_HOLE.radius + 30);
+    blackHole.addColorStop(0, "rgba(0,0,0,1)");
+    blackHole.addColorStop(0.22, "rgba(0,0,0,0.96)");
+    blackHole.addColorStop(0.7, "rgba(10,10,18,0.35)");
+    blackHole.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = blackHole;
+    ctx.beginPath();
+    ctx.arc(0, 0, BLACK_HOLE.radius + 30, 0, Math.PI * 2);
+    ctx.fill();
 
-  ctx.beginPath();
-  ctx.arc(0, 0, BLACK_HOLE.radius + 18, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
-  ctx.stroke();
-  ctx.restore();
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, BLACK_HOLE.radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, BLACK_HOLE.radius + 18, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.stroke();
+    ctx.restore();
+  }
 
   for (const star of backgroundStars) {
     ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
