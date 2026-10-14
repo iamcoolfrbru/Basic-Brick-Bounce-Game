@@ -20,9 +20,6 @@ const startButton = document.getElementById("startButton");
 const pauseButton = document.getElementById("pauseButton");
 const resumeButton = document.getElementById("resumeButton");
 const restartButton = document.getElementById("restartButton");
-const pauseSettingsButton = document.getElementById("pauseSettingsButton");
-const pauseSettingsBack = document.getElementById("pauseSettingsBack");
-const pauseCustomizeBack = document.getElementById("pauseCustomizeBack");
 const startMenuActions = document.getElementById("startMenuActions");
 const pauseMenuActions = document.getElementById("pauseMenuActions");
 const tabButtons = document.querySelectorAll(".tab-button");
@@ -620,8 +617,6 @@ function startMenu() {
   pauseButton.classList.add("hidden");
   startMenuActions.classList.remove("hidden");
   pauseMenuActions.classList.add("hidden");
-  pauseSettingsBack.classList.add("hidden");
-  pauseCustomizeBack.classList.add("hidden");
 }
 
 function startGame() {
@@ -644,8 +639,6 @@ function pauseGame() {
   });
   startMenuActions.classList.add("hidden");
   pauseMenuActions.classList.remove("hidden");
-  pauseSettingsBack.classList.remove("hidden");
-  pauseCustomizeBack.classList.remove("hidden");
   setActiveTab("main");
   menuOverlay.classList.remove("hidden");
   pauseButton.classList.add("hidden");
@@ -699,9 +692,6 @@ function bindMenuControls() {
   pauseButton.addEventListener("click", pauseGame);
   resumeButton.addEventListener("click", resumeGame);
   restartButton.addEventListener("click", restartPausedGame);
-  pauseSettingsButton.addEventListener("click", () => setActiveTab("settings"));
-  pauseSettingsBack.addEventListener("click", () => setActiveTab("main"));
-  pauseCustomizeBack.addEventListener("click", () => setActiveTab("main"));
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveTab(button.dataset.tab));
