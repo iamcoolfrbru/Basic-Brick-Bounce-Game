@@ -32,10 +32,9 @@ function makeBricks() {
   return list;
 }
 
-// Draws every brick in the list.
-function drawBricks(color) {
-  ctx.fillStyle = color;
+// Draws every brick using the image selected in the customization menu.
+function drawBricks() {
   for (const brick of bricks) {
-    ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+    drawSkinImage(ctx, "brick", settings.brickSkin, brick.x, brick.y, brick.width, brick.height);
   }
 }

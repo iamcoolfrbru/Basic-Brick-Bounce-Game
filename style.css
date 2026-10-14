@@ -82,10 +82,12 @@ canvas#starfield {
 
 .menu-panel {
   width: min(92%, 420px);
+  max-height: 92%;
   padding: 20px 18px 18px;
   border: 2px solid rgba(255, 255, 255, 0.8);
   background: rgba(10, 10, 16, 0.8);
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
+  overflow-y: auto;
 }
 
 .menu-panel h1 {
@@ -208,6 +210,63 @@ canvas#starfield {
 .setting-row select option {
   background: #111;
   color: #fff;
+}
+
+.skin-picker {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.skin-picker h2 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.skin-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.skin-option {
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.skin-option[aria-pressed="true"] {
+  border-color: #8be9fd;
+  background: rgba(139, 233, 253, 0.1);
+  box-shadow: 0 0 10px rgba(139, 233, 253, 0.38);
+}
+
+.skin-option:hover,
+.skin-option:focus-visible {
+  border-color: #fff;
+}
+
+.skin-option canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2.5 / 1;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.skin-option span {
+  display: block;
+  overflow: hidden;
+  margin-top: 5px;
+  font-size: 0.72rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 p {

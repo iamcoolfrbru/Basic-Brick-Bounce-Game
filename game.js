@@ -22,10 +22,12 @@ const resumeButton = document.getElementById("resumeButton");
 const restartButton = document.getElementById("restartButton");
 const pauseSettingsButton = document.getElementById("pauseSettingsButton");
 const pauseSettingsBack = document.getElementById("pauseSettingsBack");
+const pauseCustomizeBack = document.getElementById("pauseCustomizeBack");
 const startMenuActions = document.getElementById("startMenuActions");
 const pauseMenuActions = document.getElementById("pauseMenuActions");
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
+const skinOptionContainers = document.querySelectorAll("[data-skin-options]");
 const wallpaperSelect = document.getElementById("wallpaperSelect");
 const ballSpeedControl = document.getElementById("ballSpeedControl");
 const paddleLengthControl = document.getElementById("paddleLengthControl");
@@ -44,8 +46,50 @@ const settings = {
   wallpaper: "black-hole",
   ballSpeed: 4,
   paddleLength: 90,
-  paddleSpeed: 6
+  paddleSpeed: 6,
+  paddleSkin: "neon",
+  ballSkin: "classic",
+  brickSkin: "classic"
 };
+
+const skinOptions = {
+  paddle: [
+    { id: "neon", label: "Neon", x: 22, y: 60, width: 230, height: 112 },
+    { id: "galaxy", label: "Galaxy", x: 272, y: 60, width: 230, height: 112 },
+    { id: "wooden", label: "Wooden", x: 522, y: 60, width: 230, height: 112 },
+    { id: "cyber", label: "Cyber", x: 772, y: 60, width: 230, height: 112 },
+    { id: "pizza", label: "Pizza", x: 1022, y: 60, width: 230, height: 112 },
+    { id: "cat", label: "Cat", x: 1272, y: 60, width: 235, height: 112 }
+  ],
+  ball: [
+    { id: "classic", label: "Classic", x: 30, y: 320, width: 165, height: 155 },
+    { id: "fire", label: "Fire", x: 210, y: 320, width: 170, height: 155 },
+    { id: "ice", label: "Ice", x: 402, y: 320, width: 170, height: 155 },
+    { id: "planet", label: "Planet", x: 590, y: 320, width: 170, height: 155 },
+    { id: "disco", label: "Disco", x: 780, y: 320, width: 170, height: 155 },
+    { id: "toxic", label: "Toxic", x: 960, y: 320, width: 170, height: 155 },
+    { id: "heart", label: "Heart", x: 1150, y: 320, width: 170, height: 155 },
+    { id: "moon", label: "Moon", x: 1340, y: 320, width: 170, height: 155 }
+  ],
+  brick: [
+    { id: "classic", label: "Classic", x: 22, y: 620, width: 235, height: 95 },
+    { id: "neon", label: "Neon", x: 276, y: 620, width: 235, height: 95 },
+    { id: "metal", label: "Metal", x: 530, y: 620, width: 235, height: 95 },
+    { id: "glass", label: "Glass", x: 780, y: 620, width: 235, height: 95 },
+    { id: "wood", label: "Wood", x: 1028, y: 620, width: 235, height: 95 },
+    { id: "stone", label: "Stone", x: 1280, y: 620, width: 235, height: 95 },
+    { id: "rainbow", label: "Rainbow", x: 22, y: 770, width: 235, height: 100 },
+    { id: "galaxy", label: "Galaxy", x: 276, y: 770, width: 235, height: 100 },
+    { id: "leaf", label: "Leaf", x: 530, y: 770, width: 235, height: 100 },
+    { id: "lava", label: "Lava", x: 780, y: 770, width: 235, height: 100 },
+    { id: "candy", label: "Candy", x: 1028, y: 770, width: 235, height: 100 },
+    { id: "pixel", label: "Pixel", x: 1280, y: 770, width: 235, height: 100 }
+  ]
+};
+
+const skinSheet = new Image();
+skinSheet.src = "assets/Designer.png";
+skinSheet.addEventListener("load", refreshSkinPreviews);
 
 const wallpaperOptions = [
   {
@@ -183,6 +227,99 @@ function applySettings() {
     ball.x = paddle.x + paddle.width / 2 - ball.width / 2;
     ball.y = paddle.y - ball.height;
   }
+}
+
+function drawSkinImage(context, category, skinId, x, y, width, height) {
+  const skin = skinOptions[category].find((option) => option.id === skinId);
+  if (!skin || !skinSheet.complete || !skinSheet.naturalWidth) {
+    return;
+  }
+
+  context.save();
+  context.globalCompositeOperation = "screen";
+  context.drawImage(
+    skinSheet,
+    skin.x,
+    skin.y,
+    skin.width,
+    skin.height,
+    x,
+    y,
+    width,
+    height
+  );
+  context.restore();
+}
+
+function drawSkinPreview(context, category, skin) {
+  const canvas = context.canvas;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = "#050a15";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (!skinSheet.complete || !skinSheet.naturalWidth) {
+    return;
+  }
+
+  const scale = Math.min(canvas.width / skin.width, canvas.height / skin.height);
+  const width = skin.width * scale;
+  const height = skin.height * scale;
+  drawSkinImage(
+    context,
+    category,
+    skin.id,
+    (canvas.width - width) / 2,
+    (canvas.height - height) / 2,
+    width,
+    height
+  );
+}
+
+function refreshSkinPreviews() {
+  document.querySelectorAll("canvas[data-skin-preview]").forEach((preview) => {
+    const category = preview.dataset.skinCategory;
+    const skin = skinOptions[category].find((option) => option.id === preview.dataset.skinPreview);
+    drawSkinPreview(preview.getContext("2d"), category, skin);
+  });
+}
+
+function updateSkinOptionStates(category) {
+  const container = document.querySelector(`[data-skin-options="${category}"]`);
+  container.querySelectorAll(".skin-option").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.skin === settings[`${category}Skin`]));
+  });
+}
+
+function populateSkinOptions() {
+  for (const container of skinOptionContainers) {
+    const category = container.dataset.skinOptions;
+    for (const skin of skinOptions[category]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "skin-option";
+      button.dataset.skin = skin.id;
+      button.setAttribute("aria-pressed", String(settings[`${category}Skin`] === skin.id));
+      button.setAttribute("aria-label", `${skin.label} ${category} skin`);
+
+      const preview = document.createElement("canvas");
+      preview.width = 180;
+      preview.height = 64;
+      preview.dataset.skinPreview = skin.id;
+      preview.dataset.skinCategory = category;
+      preview.setAttribute("aria-hidden", "true");
+      drawSkinPreview(preview.getContext("2d"), category, skin);
+
+      const label = document.createElement("span");
+      label.textContent = skin.label;
+      button.append(preview, label);
+      button.addEventListener("click", () => {
+        settings[`${category}Skin`] = skin.id;
+        updateSkinOptionStates(category);
+      });
+      container.appendChild(button);
+    }
+  }
+  refreshSkinPreviews();
 }
 
 
@@ -441,16 +578,9 @@ function moveBall() {
 function draw(time) {
   drawBackground();
 
-  const accentColor = getAccentColor(time);
-  ctx.save();
-  ctx.fillStyle = accentColor;
-  ctx.shadowColor = accentColor;
-  ctx.shadowBlur = 10;
-  ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
-  ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
-
-  drawBricks(accentColor);  // bricks.js
-  ctx.restore();
+  drawSkinImage(ctx, "paddle", settings.paddleSkin, paddle.x, paddle.y, paddle.width, paddle.height);
+  drawSkinImage(ctx, "ball", settings.ballSkin, ball.x, ball.y, ball.width, ball.height);
+  drawBricks();  // bricks.js
 }
 
 
@@ -491,6 +621,7 @@ function startMenu() {
   startMenuActions.classList.remove("hidden");
   pauseMenuActions.classList.add("hidden");
   pauseSettingsBack.classList.add("hidden");
+  pauseCustomizeBack.classList.add("hidden");
 }
 
 function startGame() {
@@ -514,6 +645,7 @@ function pauseGame() {
   startMenuActions.classList.add("hidden");
   pauseMenuActions.classList.remove("hidden");
   pauseSettingsBack.classList.remove("hidden");
+  pauseCustomizeBack.classList.remove("hidden");
   setActiveTab("main");
   menuOverlay.classList.remove("hidden");
   pauseButton.classList.add("hidden");
@@ -569,6 +701,7 @@ function bindMenuControls() {
   restartButton.addEventListener("click", restartPausedGame);
   pauseSettingsButton.addEventListener("click", () => setActiveTab("settings"));
   pauseSettingsBack.addEventListener("click", () => setActiveTab("main"));
+  pauseCustomizeBack.addEventListener("click", () => setActiveTab("main"));
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveTab(button.dataset.tab));
@@ -598,6 +731,7 @@ function bindMenuControls() {
 
 function start() {
   populateWallpaperOptions();
+  populateSkinOptions();
   resizeBackgroundStars();
   window.addEventListener("resize", resizeBackgroundStars);
   applySettings();

@@ -17,6 +17,7 @@
           <div class="tab-bar" aria-label="Game menu tabs">
             <button type="button" class="tab-button active" data-tab="main">Main</button>
             <button type="button" class="tab-button" data-tab="settings">Settings</button>
+            <button type="button" class="tab-button" data-tab="customization">Customize</button>
           </div>
 
           <div id="mainTab" class="tab-panel active">
@@ -61,6 +62,22 @@
               <input id="paddleSpeedControl" type="range" min="3" max="12" step="1" value="6">
               <strong id="paddleSpeedValue">6</strong>
             </label>
+          </div>
+
+          <div id="customizationTab" class="tab-panel">
+            <button id="pauseCustomizeBack" class="primary-button menu-action hidden" type="button">Back to Pause Menu</button>
+            <section class="skin-picker" aria-labelledby="paddleSkinsTitle">
+              <h2 id="paddleSkinsTitle">Paddles</h2>
+              <div class="skin-options" data-skin-options="paddle"></div>
+            </section>
+            <section class="skin-picker" aria-labelledby="ballSkinsTitle">
+              <h2 id="ballSkinsTitle">Balls</h2>
+              <div class="skin-options" data-skin-options="ball"></div>
+            </section>
+            <section class="skin-picker" aria-labelledby="brickSkinsTitle">
+              <h2 id="brickSkinsTitle">Bricks</h2>
+              <div class="skin-options" data-skin-options="brick"></div>
+            </section>
           </div>
         </div>
       </div>
