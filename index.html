@@ -18,6 +18,7 @@
             <button type="button" class="tab-button active" data-tab="main">Main</button>
             <button type="button" class="tab-button" data-tab="settings">Settings</button>
             <button type="button" class="tab-button" data-tab="customization">Customize</button>
+            <button id="chestTabButton" type="button" class="tab-button hidden" data-tab="chest">Chests</button>
           </div>
 
           <div id="mainTab" class="tab-panel active">
@@ -83,15 +84,22 @@
               <h2 id="legendaryItemsTitle">Legendary Items</h2>
               <div class="skin-options" data-legendary-options></div>
             </section>
+            <p id="collectionStatus" class="collection-status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div id="chestTab" class="tab-panel">
+            <p>Chest contents are awarded immediately. Rewards are added to your collection.</p>
+            <div class="chest-list" data-chest-options></div>
           </div>
         </div>
       </div>
 
       <button id="pauseButton" class="pause-button hidden" type="button" aria-label="Pause game">Pause</button>
-      <div id="lives" class="lives" role="img" aria-label="3 lives remaining">
+      <div id="lives" class="lives" aria-label="3 lives remaining">
         <span class="life-ball" aria-hidden="true"></span>
         <span class="life-ball" aria-hidden="true"></span>
         <span class="life-ball" aria-hidden="true"></span>
+        <span id="coinCounter" class="coin-counter" role="status" aria-live="polite" aria-label="0 coins">0 coins</span>
       </div>
       <canvas id="game" width="600" height="450" aria-label="Block Breaker game"></canvas>
     </div>

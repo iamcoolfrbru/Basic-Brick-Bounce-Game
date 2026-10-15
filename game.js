@@ -27,6 +27,10 @@ const tabPanels = document.querySelectorAll(".tab-panel");
 const skinOptionContainers = document.querySelectorAll("[data-skin-options]");
 const trailOptionContainer = document.querySelector("[data-trail-options]");
 const legendaryOptionContainer = document.querySelector("[data-legendary-options]");
+const chestOptionContainer = document.querySelector("[data-chest-options]");
+const chestTabButton = document.getElementById("chestTabButton");
+const coinCounter = document.getElementById("coinCounter");
+const collectionStatus = document.getElementById("collectionStatus");
 const wallpaperSelect = document.getElementById("wallpaperSelect");
 const ballSpeedControl = document.getElementById("ballSpeedControl");
 const paddleLengthControl = document.getElementById("paddleLengthControl");
@@ -111,6 +115,93 @@ const legendaryItems = [
   { id: "glitchBall", label: "Glitch Ball" },
   { id: "glitchBricks", label: "Glitch Bricks" },
   { id: "glitchTrail", label: "Glitch Trail" }
+];
+
+const PROGRESS_STORAGE_KEY = "basic-brick-bounce-progress-v1";
+let coins = 0;
+const inventory = {
+  paddle: { neon: 1 },
+  ball: { classic: 1 },
+  brick: { classic: 1 },
+  trail: { neon: 1 }
+};
+
+const woodenChestLoot = {
+  common: [
+    { category: "paddle", id: "wooden" },
+    { category: "ball", id: "fire" },
+    { category: "ball", id: "ice" },
+    { category: "trail", id: "fire" },
+    { category: "trail", id: "ice" },
+    { category: "brick", id: "stone" },
+    { category: "brick", id: "wood" },
+    { category: "brick", id: "metal" }
+  ],
+  rare: [
+    { category: "paddle", id: "cat" },
+    { category: "ball", id: "moon" },
+    { category: "ball", id: "heart" },
+    { category: "brick", id: "leaf" },
+    { category: "brick", id: "glass" },
+    { category: "brick", id: "candy" }
+  ],
+  epic: [
+    { category: "paddle", id: "neon" },
+    { category: "paddle", id: "galaxy" },
+    { category: "paddle", id: "cyber" },
+    { category: "paddle", id: "pizza" },
+    { category: "ball", id: "classic" },
+    { category: "ball", id: "planet" },
+    { category: "ball", id: "disco" },
+    { category: "ball", id: "toxic" },
+    { category: "trail", id: "planet" },
+    { category: "trail", id: "disco" },
+    { category: "trail", id: "toxic" },
+    { category: "trail", id: "heart" },
+    { category: "trail", id: "moon" },
+    { category: "trail", id: "pizza" },
+    { category: "trail", id: "lava" },
+    { category: "trail", id: "pixel" },
+    { category: "trail", id: "galaxy" },
+    { category: "trail", id: "neon" },
+    { category: "brick", id: "classic" },
+    { category: "brick", id: "neon" },
+    { category: "brick", id: "rainbow" },
+    { category: "brick", id: "galaxy" },
+    { category: "brick", id: "lava" },
+    { category: "brick", id: "pixel" }
+  ]
+};
+
+const chestOptions = [
+  {
+    id: "wood",
+    label: "Wood Chest",
+    image: "assets/suggestion-this-is-an-extremely-rare-chest-and-it-gives-the-v0-6ar8vzu09r861.webp",
+    price: 100,
+    odds: { common: 75, rare: 20, epic: 5 }
+  },
+  {
+    id: "gold",
+    label: "Shiny Gold Wood Chest",
+    image: "assets/0fc0ab027e01782ca5b2b3098ce399221b0fe238-1025x615.avif",
+    price: 250,
+    odds: { common: 55, rare: 30, epic: 15 }
+  },
+  {
+    id: "blue",
+    label: "Blue Chest",
+    image: "assets/images.jpg",
+    price: 500,
+    odds: { common: 30, rare: 40, epic: 30 }
+  },
+  {
+    id: "purple",
+    label: "Purple Chest",
+    image: "assets/Epic_Loot_Chest.webp",
+    price: 1000,
+    odds: { common: 10, rare: 35, epic: 55 }
+  }
 ];
 
 const skinSheet = new Image();
@@ -378,14 +469,40 @@ function refreshSkinPreviews() {
 function updateSkinOptionStates(category) {
   const container = document.querySelector(`[data-skin-options="${category}"]`);
   container.querySelectorAll(".skin-option").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.skin === settings[`${category}Skin`]));
+    const skin = skinOptions[category].find((option) => option.id === button.dataset.skin);
+    const ownedCount = inventory[category][button.dataset.skin] || 0;
+    const owned = ownedCount > 0;
+    button.disabled = !owned;
+    button.setAttribute("aria-pressed", String(owned && button.dataset.skin === settings[`${category}Skin`]));
+    button.querySelector("span").textContent = `${skin.label} · ${owned ? `Owned ${ownedCount}` : "Locked"}`;
+    updateSellDuplicatesButton(button.parentElement, category, skin.id, ownedCount);
   });
+}
+
+function createSellDuplicatesButton(category, id) {
+  const sellButton = document.createElement("button");
+  sellButton.type = "button";
+  sellButton.className = "sell-duplicates-button";
+  sellButton.addEventListener("click", () => sellCosmeticDuplicates(category, id));
+  return sellButton;
+}
+
+function updateSellDuplicatesButton(card, category, id, ownedCount) {
+  const sellButton = card.querySelector(".sell-duplicates-button");
+  const groups = Math.floor(Math.max(0, ownedCount - 1) / 3);
+  sellButton.disabled = groups === 0;
+  sellButton.textContent = groups > 1
+    ? `Sell 3 duplicates · 100 coins (${groups} groups)`
+    : "Sell 3 duplicates · 100 coins";
+  sellButton.setAttribute("aria-label", `Sell 3 duplicate ${getCosmeticName(category, id)} for 100 coins`);
 }
 
 function populateSkinOptions() {
   for (const container of skinOptionContainers) {
     const category = container.dataset.skinOptions;
     for (const skin of skinOptions[category]) {
+      const card = document.createElement("div");
+      card.className = "skin-option-card";
       const button = document.createElement("button");
       button.type = "button";
       button.className = "skin-option";
@@ -405,11 +522,16 @@ function populateSkinOptions() {
       label.textContent = skin.label;
       button.append(preview, label);
       button.addEventListener("click", () => {
+        if (inventory[category][skin.id] < 1) {
+          return;
+        }
         settings[`${category}Skin`] = skin.id;
         updateSkinOptionStates(category);
       });
-      container.appendChild(button);
+      card.append(button, createSellDuplicatesButton(category, skin.id));
+      container.appendChild(card);
     }
+    updateSkinOptionStates(category);
   }
   refreshSkinPreviews();
 }
@@ -460,7 +582,10 @@ function drawLegendaryPreview(context, itemId) {
 
 function updateTrailOptionStates() {
   trailOptionContainer.querySelectorAll(".skin-option").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.trail === settings.trailStyle));
+    const owned = inventory.trail[button.dataset.trail] > 0;
+    button.disabled = !owned;
+    button.setAttribute("aria-pressed", String(owned && button.dataset.trail === settings.trailStyle));
+    button.querySelector("span").textContent = `${trailOptions.find((option) => option.id === button.dataset.trail).label} · ${owned ? `Owned ${inventory.trail[button.dataset.trail]}` : "Locked"}`;
   });
 }
 
@@ -483,11 +608,15 @@ function populateTrailOptions() {
     label.textContent = option.label;
     button.append(preview, label);
     button.addEventListener("click", () => {
+      if (inventory.trail[option.id] < 1) {
+        return;
+      }
       settings.trailStyle = option.id;
       updateTrailOptionStates();
     });
     trailOptionContainer.appendChild(button);
   }
+  updateTrailOptionStates();
 }
 
 function updateLegendaryOptionStates() {
@@ -522,6 +651,104 @@ function populateLegendaryOptions() {
   }
 }
 
+function getCosmeticOptions(category) {
+  return category === "trail" ? trailOptions : skinOptions[category];
+}
+
+function loadProgress() {
+  let serializedProgress;
+  try {
+    serializedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
+  } catch (error) {
+    console.error("Unable to read saved game progress.", error);
+    return;
+  }
+  if (!serializedProgress) {
+    return;
+  }
+
+  let progress;
+  try {
+    progress = JSON.parse(serializedProgress);
+  } catch (error) {
+    console.error("Saved game progress is invalid JSON.", error);
+    return;
+  }
+  if (!progress || typeof progress !== "object" || Array.isArray(progress)) {
+    console.error("Saved game progress has an invalid format.");
+    return;
+  }
+
+  if (Number.isSafeInteger(progress.coins) && progress.coins >= 0) {
+    coins = progress.coins;
+  }
+
+  if (!progress.inventory || typeof progress.inventory !== "object") {
+    return;
+  }
+  for (const category of Object.keys(inventory)) {
+    const savedCategory = progress.inventory[category];
+    if (!savedCategory || typeof savedCategory !== "object" || Array.isArray(savedCategory)) {
+      continue;
+    }
+
+    const savedItems = {};
+    for (const option of getCosmeticOptions(category)) {
+      const quantity = savedCategory[option.id];
+      if (Number.isSafeInteger(quantity) && quantity > 0) {
+        savedItems[option.id] = quantity;
+      }
+    }
+    inventory[category] = savedItems;
+  }
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ coins, inventory }));
+  } catch (error) {
+    console.error("Unable to save game progress.", error);
+  }
+}
+
+function updateCoinDisplay() {
+  coinCounter.textContent = `${coins} coins`;
+  coinCounter.setAttribute("aria-label", `${coins} coins`);
+  buyWoodenChestButton.disabled = coins < WOODEN_CHEST_PRICE;
+}
+
+function updateCollectionOptionStates() {
+  for (const category of Object.keys(skinOptions)) {
+    updateSkinOptionStates(category);
+  }
+  updateTrailOptionStates();
+}
+
+function getCosmeticName(category, id) {
+  const option = getCosmeticOptions(category).find((item) => item.id === id);
+  const categoryLabel = category === "trail" ? "Trail" : category === "paddle" ? "Paddle" : category;
+  return `${option.label} ${categoryLabel.charAt(0).toUpperCase()}${categoryLabel.slice(1)}`;
+}
+
+function openWoodenChest() {
+  if (coins < WOODEN_CHEST_PRICE) {
+    chestResult.textContent = "You need 100 coins to buy this chest.";
+    return;
+  }
+
+  coins -= WOODEN_CHEST_PRICE;
+  const roll = Math.random();
+  const tier = roll < 0.75 ? "common" : roll < 0.95 ? "rare" : "epic";
+  const rewards = woodenChestLoot[tier];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+  inventory[reward.category][reward.id] = (inventory[reward.category][reward.id] || 0) + 1;
+
+  updateCoinDisplay();
+  updateCollectionOptionStates();
+  saveProgress();
+  chestResult.textContent = `${tier.charAt(0).toUpperCase()}${tier.slice(1)} reward: ${getCosmeticName(reward.category, reward.id)} (owned ${inventory[reward.category][reward.id]}).`;
+}
+
 
 // ------------------------------------------------------------
 // THE BRICKS (the list is filled in by makeBricks() in bricks.js)
@@ -534,6 +761,15 @@ function restartGame() {
   paddle.x = WIDTH / 2 - paddle.width / 2;
   lives = MAX_LIVES;
   updateLivesDisplay();
+}
+
+function completeLevel() {
+  coins += 25;
+  bricks = makeBricks();
+  paddle.x = WIDTH / 2 - paddle.width / 2;
+  resetBall();
+  updateCoinDisplay();
+  saveProgress();
 }
 
 function updateLivesDisplay() {
@@ -737,6 +973,11 @@ function update() {
     bounceOffBricks();  // collisions.js
     updateBallTrail();
 
+    if (bricks.length === 0) {
+      completeLevel();
+      return;
+    }
+
     // The ball fell off the bottom: back to the center.
     if (ball.y > HEIGHT) {
       lives--;
@@ -899,6 +1140,7 @@ function frame(now) {
 function startMenu() {
   gamePaused = false;
   menuOverlay.classList.remove("hidden");
+  chestTabButton.classList.add("hidden");
   gameRunning = false;
   pauseButton.classList.add("hidden");
   startMenuActions.classList.remove("hidden");
@@ -908,6 +1150,7 @@ function startMenu() {
 function startGame() {
   gamePaused = false;
   gameRunning = true;
+  chestTabButton.classList.add("hidden");
   menuOverlay.classList.add("hidden");
   pauseButton.classList.remove("hidden");
   restartGame();
@@ -925,6 +1168,7 @@ function pauseGame() {
   });
   startMenuActions.classList.add("hidden");
   pauseMenuActions.classList.remove("hidden");
+  chestTabButton.classList.remove("hidden");
   setActiveTab("main");
   menuOverlay.classList.remove("hidden");
   pauseButton.classList.add("hidden");
@@ -978,6 +1222,7 @@ function bindMenuControls() {
   pauseButton.addEventListener("click", pauseGame);
   resumeButton.addEventListener("click", resumeGame);
   restartButton.addEventListener("click", restartPausedGame);
+  buyWoodenChestButton.addEventListener("click", openWoodenChest);
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveTab(button.dataset.tab));
@@ -1006,10 +1251,12 @@ function bindMenuControls() {
 }
 
 function start() {
+  loadProgress();
   populateWallpaperOptions();
   populateSkinOptions();
   populateTrailOptions();
   populateLegendaryOptions();
+  updateCoinDisplay();
   resizeBackgroundStars();
   window.addEventListener("resize", resizeBackgroundStars);
   applySettings();

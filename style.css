@@ -65,6 +65,14 @@ canvas#starfield {
   background: transparent;
 }
 
+.coin-counter {
+  min-width: 72px;
+  margin-left: 8px;
+  color: #f4d77a;
+  font-size: 14px;
+  text-align: right;
+}
+
 .menu-overlay {
   position: absolute;
   inset: 0;
@@ -230,7 +238,12 @@ canvas#starfield {
   gap: 8px;
 }
 
+.skin-option-card {
+  min-width: 0;
+}
+
 .skin-option {
+  width: 100%;
   min-width: 0;
   padding: 5px;
   border: 1px solid rgba(255, 255, 255, 0.38);
@@ -255,6 +268,77 @@ canvas#starfield {
   border-color: #f4d77a;
   background: rgba(244, 215, 122, 0.12);
   box-shadow: 0 0 12px rgba(244, 215, 122, 0.35);
+}
+
+.skin-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.sell-duplicates-button {
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px 3px;
+  border: 1px solid rgba(244, 215, 122, 0.45);
+  background: rgba(244, 215, 122, 0.06);
+  color: #f4d77a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.62rem;
+}
+
+.sell-duplicates-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.collection-status {
+  min-height: 1.5em;
+  color: #8be9fd;
+}
+
+.chest-list {
+  display: grid;
+  gap: 10px;
+}
+
+.chest-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid rgba(244, 215, 122, 0.65);
+  background: rgba(244, 215, 122, 0.06);
+  text-align: left;
+}
+
+.chest-card img {
+  width: 34%;
+  max-height: 112px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.chest-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.chest-details h2 {
+  margin: 0 0 8px;
+  color: #f4d77a;
+  font-size: 1rem;
+}
+
+.chest-details p {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+}
+
+.chest-result {
+  min-height: 1.5em;
+  color: #8be9fd;
 }
 
 .skin-option:hover,
