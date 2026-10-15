@@ -22,6 +22,22 @@ main {
   text-align: center;
 }
 
+.startup-error {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  max-width: calc(100vw - 24px);
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #ff8b8b;
+  background: #310d12;
+  color: #fff;
+  font: 14px/1.4 "Courier New", monospace;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
 .game-area {
   position: relative;
 }

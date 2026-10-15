@@ -5,8 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Block Breaker</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    window.addEventListener("error", (event) => {
+      const notice = document.getElementById("startupError");
+      if (!notice) {
+        return;
+      }
+
+      const failedScript = event.target instanceof HTMLScriptElement ? event.target.src : "";
+      const message = event.message || (failedScript ? `Unable to load ${failedScript}` : "Unknown JavaScript error");
+      const location = event.filename ? ` (${event.filename}:${event.lineno})` : "";
+      notice.textContent = `Game startup error: ${message}${location}`;
+      notice.hidden = false;
+    }, true);
+  </script>
 </head>
 <body>
+  <p id="startupError" class="startup-error" role="alert" hidden></p>
+  <noscript><p class="startup-error">This game needs JavaScript enabled to run.</p></noscript>
   <canvas id="starfield" aria-hidden="true"></canvas>
   <main>
     <div class="game-area">
