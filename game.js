@@ -186,6 +186,18 @@ const BLACK_HOLE = {
 // A positive vy means the ball is moving DOWN the screen.
 // ------------------------------------------------------------
 let ballLaunched = false;
+const ballTrail = [];
+const BALL_TRAIL_LENGTH = 18;
+const ballTrailColors = {
+  classic: "#8be9fd",
+  fire: "#ff7a24",
+  ice: "#68d8ff",
+  planet: "#67e8a5",
+  disco: "#d58bff",
+  toxic: "#72ff3b",
+  heart: "#ff62c8",
+  moon: "#c4c8d8"
+};
 
 const ball = {
   x: 0,
@@ -199,6 +211,7 @@ const ball = {
 // Put the ball on top of the paddle, centered, and wait for launch.
 function resetBall() {
   ballLaunched = false;
+  ballTrail.length = 0;
   ball.x = paddle.x + paddle.width / 2 - ball.width / 2;
   ball.y = paddle.y - ball.height;
   ball.vx = settings.ballSpeed;
@@ -557,6 +570,7 @@ function update() {
     bounceOffWalls();   // collisions.js
     bounceOffPaddle();  // collisions.js
     bounceOffBricks();  // collisions.js
+    updateBallTrail();
 
     // The ball fell off the bottom: back to the center.
     if (ball.y > HEIGHT) {
@@ -593,6 +607,56 @@ function moveBall() {
   ball.y = ball.y + ball.vy;
 }
 
+function updateBallTrail() {
+  ballTrail.unshift({
+    x: ball.x + ball.width / 2,
+    y: ball.y + ball.height / 2
+  });
+  if (ballTrail.length > BALL_TRAIL_LENGTH) {
+    ballTrail.length = BALL_TRAIL_LENGTH;
+  }
+}
+
+function drawBallTrail() {
+  if (!ballLaunched || ballTrail.length < 2) {
+    return;
+  }
+
+  const color = ballTrailColors[settings.ballSkin] || ballTrailColors.classic;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  for (let index = 0; index < ballTrail.length - 1; index++) {
+    const current = ballTrail[index];
+    const previous = ballTrail[index + 1];
+    const age = index / (ballTrail.length - 1);
+    const opacity = (1 - age) * 0.7;
+    const width = (1 - age) * 10 + 1;
+
+    ctx.globalAlpha = opacity * 0.45;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width * 2.5;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 12 * (1 - age);
+    ctx.beginPath();
+    ctx.moveTo(current.x, current.y);
+    ctx.lineTo(previous.x, previous.y);
+    ctx.stroke();
+
+    ctx.globalAlpha = opacity;
+    ctx.lineWidth = width;
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(current.x, current.y);
+    ctx.lineTo(previous.x, previous.y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 
 // ------------------------------------------------------------
 // DRAW: paints the wallpaper and game objects on the canvas.
@@ -600,6 +664,7 @@ function moveBall() {
 function draw(time) {
   drawBackground();
 
+  drawBallTrail();
   drawSkinImage(ctx, "paddle", settings.paddleSkin, paddle.x, paddle.y, paddle.width, paddle.height);
   drawSkinImage(ctx, "ball", settings.ballSkin, ball.x, ball.y, ball.width, ball.height);
   drawBricks();  // bricks.js
