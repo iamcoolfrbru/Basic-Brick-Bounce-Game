@@ -1375,6 +1375,22 @@ function bindMenuControls() {
   pauseButton.addEventListener("click", pauseGame);
   resumeButton.addEventListener("click", resumeGame);
   restartButton.addEventListener("click", restartPausedGame);
+  closeCheatMenuButton.addEventListener("click", closeCheatMenu);
+  infiniteLivesControl.addEventListener("change", function () {
+    infiniteLives = infiniteLivesControl.checked;
+    if (infiniteLives) {
+      lives = MAX_LIVES;
+      updateLivesDisplay();
+    }
+    cheatStatus.textContent = infiniteLives ? "Infinite lives enabled." : "Infinite lives disabled.";
+  });
+  giveCoinsButton.addEventListener("click", function () {
+    changeCoinsFromCheat("give");
+  });
+  takeCoinsButton.addEventListener("click", function () {
+    changeCoinsFromCheat("take");
+  });
+  unlockAllSkinsButton.addEventListener("click", unlockAllCosmetics);
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveTab(button.dataset.tab));
@@ -1400,6 +1416,48 @@ function bindMenuControls() {
     paddleSpeedValue.textContent = settings.paddleSpeed;
     paddle.speed = settings.paddleSpeed;
   });
+}
+
+function changeCoinsFromCheat(action) {
+  const amount = Number(cheatCoinAmount.value);
+  if (!Number.isSafeInteger(amount) || amount < 1) {
+    cheatStatus.textContent = "Enter a whole coin amount greater than zero.";
+    return;
+  }
+
+  if (action === "give") {
+    if (!Number.isSafeInteger(coins + amount)) {
+      cheatStatus.textContent = "That amount exceeds the coin limit.";
+      return;
+    }
+    coins += amount;
+    cheatStatus.textContent = `Added ${amount} coins.`;
+  } else {
+    const taken = Math.min(coins, amount);
+    coins -= taken;
+    cheatStatus.textContent = `Removed ${taken} coins.`;
+  }
+
+  updateCoinDisplay();
+  saveProgress();
+}
+
+function unlockAllCosmetics() {
+  for (const category of Object.keys(skinOptions)) {
+    for (const skin of skinOptions[category]) {
+      inventory[category][skin.id] = Math.max(1, inventory[category][skin.id] || 0);
+    }
+  }
+  for (const trail of trailOptions) {
+    inventory.trail[trail.id] = Math.max(1, inventory.trail[trail.id] || 0);
+  }
+  for (const item of legendaryItems) {
+    inventory.legendary[item.id] = Math.max(1, inventory.legendary[item.id] || 0);
+  }
+
+  updateCollectionOptionStates();
+  saveProgress();
+  cheatStatus.textContent = "All skins and cosmetic items unlocked.";
 }
 
 function start() {
