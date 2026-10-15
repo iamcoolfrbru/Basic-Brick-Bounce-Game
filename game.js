@@ -22,6 +22,14 @@ const resumeButton = document.getElementById("resumeButton");
 const restartButton = document.getElementById("restartButton");
 const startMenuActions = document.getElementById("startMenuActions");
 const pauseMenuActions = document.getElementById("pauseMenuActions");
+const cheatOverlay = document.getElementById("cheatOverlay");
+const closeCheatMenuButton = document.getElementById("closeCheatMenuButton");
+const infiniteLivesControl = document.getElementById("infiniteLivesControl");
+const cheatCoinAmount = document.getElementById("cheatCoinAmount");
+const giveCoinsButton = document.getElementById("giveCoinsButton");
+const takeCoinsButton = document.getElementById("takeCoinsButton");
+const unlockAllSkinsButton = document.getElementById("unlockAllSkinsButton");
+const cheatStatus = document.getElementById("cheatStatus");
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const skinOptionContainers = document.querySelectorAll("[data-skin-options]");
@@ -44,6 +52,9 @@ let blackHoleImageLoaded = false;
 let lives = MAX_LIVES;
 let gameRunning = false;
 let gamePaused = false;
+let infiniteLives = false;
+let cheatMenuOpen = false;
+let resumeGameAfterCheat = false;
 
 const settings = {
   wallpaper: "black-hole",

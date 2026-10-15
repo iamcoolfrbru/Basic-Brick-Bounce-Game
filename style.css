@@ -104,6 +104,100 @@ canvas#starfield {
   display: none;
 }
 
+.cheat-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.cheat-overlay.hidden {
+  display: none;
+}
+
+.cheat-panel {
+  width: min(92%, 380px);
+}
+
+.cheat-header,
+.cheat-toggle-row,
+.cheat-amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cheat-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.cheat-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cheat-toggle-row {
+  margin-top: 18px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: left;
+}
+
+.cheat-toggle-row input {
+  width: 20px;
+  height: 20px;
+  accent-color: #8be9fd;
+}
+
+.cheat-section {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.cheat-section h3 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.cheat-amount-row {
+  margin-bottom: 10px;
+}
+
+.cheat-amount-row input {
+  width: 120px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: #111;
+  color: #fff;
+  font: inherit;
+}
+
+.cheat-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cheat-actions .primary-button {
+  padding: 9px 6px;
+  font-size: 0.82rem;
+}
+
 .menu-panel {
   width: min(92%, 420px);
   max-height: 92%;

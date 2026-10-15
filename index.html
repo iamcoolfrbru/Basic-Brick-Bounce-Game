@@ -110,6 +110,38 @@
         </div>
       </div>
 
+      <div id="cheatOverlay" class="cheat-overlay hidden">
+        <section class="menu-panel cheat-panel" role="dialog" aria-modal="true" aria-labelledby="cheatMenuTitle">
+          <header class="cheat-header">
+            <h2 id="cheatMenuTitle">Cheat Menu</h2>
+            <button id="closeCheatMenuButton" class="cheat-close" type="button" aria-label="Close cheat menu">X</button>
+          </header>
+
+          <label class="cheat-toggle-row">
+            <span>Infinite lives</span>
+            <input id="infiniteLivesControl" type="checkbox">
+          </label>
+
+          <section class="cheat-section" aria-labelledby="coinCheatTitle">
+            <h3 id="coinCheatTitle">Coins</h3>
+            <label class="cheat-amount-row" for="cheatCoinAmount">
+              <span>Amount</span>
+              <input id="cheatCoinAmount" type="number" min="1" step="1" value="100" inputmode="numeric">
+            </label>
+            <div class="cheat-actions">
+              <button id="giveCoinsButton" class="primary-button" type="button">Give coins</button>
+              <button id="takeCoinsButton" class="primary-button" type="button">Take coins</button>
+            </div>
+          </section>
+
+          <section class="cheat-section" aria-labelledby="skinCheatTitle">
+            <h3 id="skinCheatTitle">Skins</h3>
+            <button id="unlockAllSkinsButton" class="primary-button" type="button">Unlock all skins</button>
+          </section>
+          <p id="cheatStatus" class="collection-status" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+
       <button id="pauseButton" class="pause-button hidden" type="button" aria-label="Pause game">Pause</button>
       <div id="lives" class="lives" aria-label="3 lives remaining">
         <span class="life-ball" aria-hidden="true"></span>
