@@ -246,6 +246,17 @@ canvas#starfield {
   box-shadow: 0 0 10px rgba(139, 233, 253, 0.38);
 }
 
+.legendary-picker h2 {
+  color: #f4d77a;
+  letter-spacing: 0.08em;
+}
+
+.legendary-option[aria-pressed="true"] {
+  border-color: #f4d77a;
+  background: rgba(244, 215, 122, 0.12);
+  box-shadow: 0 0 12px rgba(244, 215, 122, 0.35);
+}
+
 .skin-option:hover,
 .skin-option:focus-visible {
   border-color: #fff;

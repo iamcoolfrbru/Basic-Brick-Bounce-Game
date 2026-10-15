@@ -25,6 +25,8 @@ const pauseMenuActions = document.getElementById("pauseMenuActions");
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const skinOptionContainers = document.querySelectorAll("[data-skin-options]");
+const trailOptionContainer = document.querySelector("[data-trail-options]");
+const legendaryOptionContainer = document.querySelector("[data-legendary-options]");
 const wallpaperSelect = document.getElementById("wallpaperSelect");
 const ballSpeedControl = document.getElementById("ballSpeedControl");
 const paddleLengthControl = document.getElementById("paddleLengthControl");
@@ -46,7 +48,12 @@ const settings = {
   paddleSpeed: 6,
   paddleSkin: "neon",
   ballSkin: "classic",
-  brickSkin: "classic"
+  brickSkin: "classic",
+  trailStyle: "neon",
+  glitchPaddle: false,
+  glitchBall: false,
+  glitchBricks: false,
+  glitchTrail: false
 };
 
 const skinOptions = {
@@ -83,6 +90,28 @@ const skinOptions = {
     { id: "pixel", label: "Pixel", x: 1280, y: 770, width: 235, height: 100 }
   ]
 };
+
+const trailOptions = [
+  { id: "neon", label: "Neon", color: "#8be9fd" },
+  { id: "fire", label: "Fire", color: "#ff7a24" },
+  { id: "ice", label: "Ice", color: "#68d8ff" },
+  { id: "planet", label: "Planetary", color: "#67e8a5" },
+  { id: "disco", label: "Disco", color: "#d58bff" },
+  { id: "toxic", label: "Toxic", color: "#72ff3b" },
+  { id: "heart", label: "Heart", color: "#ff62c8" },
+  { id: "moon", label: "Moon Dust", color: "#c4c8d8" },
+  { id: "pizza", label: "Pizza", color: "#ffd166" },
+  { id: "lava", label: "Lava", color: "#ff4d24" },
+  { id: "pixel", label: "Pixel", color: "#ffe14a" },
+  { id: "galaxy", label: "Galaxy", color: "#a875ff" }
+];
+
+const legendaryItems = [
+  { id: "glitchPaddle", label: "Glitch Paddle" },
+  { id: "glitchBall", label: "Glitch Ball" },
+  { id: "glitchBricks", label: "Glitch Bricks" },
+  { id: "glitchTrail", label: "Glitch Trail" }
+];
 
 const skinSheet = new Image();
 const transparentSkinSheet = document.createElement("canvas");
@@ -188,16 +217,6 @@ const BLACK_HOLE = {
 let ballLaunched = false;
 const ballTrail = [];
 const BALL_TRAIL_LENGTH = 18;
-const ballTrailColors = {
-  classic: "#8be9fd",
-  fire: "#ff7a24",
-  ice: "#68d8ff",
-  planet: "#67e8a5",
-  disco: "#d58bff",
-  toxic: "#72ff3b",
-  heart: "#ff62c8",
-  moon: "#c4c8d8"
-};
 
 const ball = {
   x: 0,
@@ -286,6 +305,44 @@ function drawSkinImage(context, category, skinId, x, y, width, height) {
   context.restore();
 }
 
+function drawGlitchArtifacts(context, x, y, width, height, seed = 0) {
+  const barHeight = Math.max(1, height * 0.12);
+  context.save();
+  context.globalCompositeOperation = "lighter";
+  context.shadowBlur = 5;
+  context.shadowColor = "#45edff";
+
+  for (let index = 0; index < 4; index++) {
+    const offset = Math.abs(Math.floor(seed * 13 + index * 29));
+    const barWidth = Math.max(2, width * (0.16 + (offset % 32) / 100));
+    const barX = x + ((offset * 7) % Math.max(1, Math.floor(width - barWidth)));
+    const barY = y + ((offset * 3) % Math.max(1, Math.floor(height - barHeight + 1)));
+
+    context.globalAlpha = index % 2 === 0 ? 0.8 : 0.65;
+    context.fillStyle = index % 2 === 0 ? "#45edff" : "#ff42dc";
+    context.fillRect(barX, barY, barWidth, barHeight);
+  }
+
+  context.globalAlpha = 0.8;
+  context.fillStyle = "#f5f7ff";
+  context.fillRect(x + width * 0.18, y + height * 0.48, width * 0.64, Math.max(1, height * 0.05));
+  context.restore();
+}
+
+function drawPaddle() {
+  drawSkinImage(ctx, "paddle", settings.paddleSkin, paddle.x, paddle.y, paddle.width, paddle.height);
+  if (settings.glitchPaddle) {
+    drawGlitchArtifacts(ctx, paddle.x, paddle.y, paddle.width, paddle.height, paddle.x);
+  }
+}
+
+function drawBall() {
+  drawSkinImage(ctx, "ball", settings.ballSkin, ball.x, ball.y, ball.width, ball.height);
+  if (settings.glitchBall) {
+    drawGlitchArtifacts(ctx, ball.x, ball.y, ball.width, ball.height, ball.y);
+  }
+}
+
 function drawSkinPreview(context, category, skin) {
   const canvas = context.canvas;
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -355,6 +412,114 @@ function populateSkinOptions() {
     }
   }
   refreshSkinPreviews();
+}
+
+function drawTrailPreview(context, option) {
+  context.fillStyle = "#050a15";
+  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+  context.save();
+  context.lineCap = "round";
+  context.shadowColor = option.color;
+  context.shadowBlur = 10;
+  context.strokeStyle = option.color;
+  context.lineWidth = 7;
+  context.beginPath();
+  context.moveTo(25, 32);
+  context.lineTo(145, 32);
+  context.stroke();
+  context.restore();
+}
+
+function drawLegendaryPreview(context, itemId) {
+  context.fillStyle = "#050a15";
+  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+  context.save();
+  context.globalCompositeOperation = "lighter";
+  context.fillStyle = "#ff42dc";
+  context.fillRect(43, 22, 84, 20);
+  context.fillStyle = "#45edff";
+  context.fillRect(54, 18, 72, 20);
+  context.fillStyle = "#f5f7ff";
+
+  if (itemId === "glitchBall") {
+    context.beginPath();
+    context.arc(90, 32, 16, 0, Math.PI * 2);
+    context.fill();
+  } else if (itemId === "glitchBricks") {
+    context.fillRect(37, 21, 51, 22);
+    context.fillRect(94, 21, 51, 22);
+  } else if (itemId === "glitchTrail") {
+    context.fillRect(34, 29, 86, 5);
+    context.fillRect(124, 23, 20, 17);
+  } else {
+    context.fillRect(42, 24, 102, 16);
+  }
+
+  context.restore();
+}
+
+function updateTrailOptionStates() {
+  trailOptionContainer.querySelectorAll(".skin-option").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.trail === settings.trailStyle));
+  });
+}
+
+function populateTrailOptions() {
+  for (const option of trailOptions) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "skin-option";
+    button.dataset.trail = option.id;
+    button.setAttribute("aria-pressed", String(settings.trailStyle === option.id));
+    button.setAttribute("aria-label", `${option.label} trail`);
+
+    const preview = document.createElement("canvas");
+    preview.width = 180;
+    preview.height = 64;
+    preview.setAttribute("aria-hidden", "true");
+    drawTrailPreview(preview.getContext("2d"), option);
+
+    const label = document.createElement("span");
+    label.textContent = option.label;
+    button.append(preview, label);
+    button.addEventListener("click", () => {
+      settings.trailStyle = option.id;
+      updateTrailOptionStates();
+    });
+    trailOptionContainer.appendChild(button);
+  }
+}
+
+function updateLegendaryOptionStates() {
+  legendaryOptionContainer.querySelectorAll(".legendary-option").forEach((button) => {
+    button.setAttribute("aria-pressed", String(settings[button.dataset.legendary]));
+  });
+}
+
+function populateLegendaryOptions() {
+  for (const item of legendaryItems) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "skin-option legendary-option";
+    button.dataset.legendary = item.id;
+    button.setAttribute("aria-pressed", String(settings[item.id]));
+    button.setAttribute("aria-label", `Toggle ${item.label}`);
+
+    const preview = document.createElement("canvas");
+    preview.width = 180;
+    preview.height = 64;
+    preview.setAttribute("aria-hidden", "true");
+    drawLegendaryPreview(preview.getContext("2d"), item.id);
+
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    button.append(preview, label);
+    button.addEventListener("click", () => {
+      settings[item.id] = !settings[item.id];
+      updateLegendaryOptionStates();
+    });
+    legendaryOptionContainer.appendChild(button);
+  }
 }
 
 
@@ -622,11 +787,34 @@ function drawBallTrail() {
     return;
   }
 
-  const color = ballTrailColors[settings.ballSkin] || ballTrailColors.classic;
+  const trailOption = trailOptions.find((option) => option.id === settings.trailStyle) || trailOptions[0];
+  const color = trailOption.color;
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
+
+  if (settings.glitchTrail) {
+    for (let index = 0; index < ballTrail.length - 1; index++) {
+      const current = ballTrail[index];
+      const previous = ballTrail[index + 1];
+      const opacity = 1 - index / (ballTrail.length - 1);
+      const offset = index % 2 === 0 ? 3 : -3;
+      ctx.globalAlpha = opacity * 0.8;
+      ctx.strokeStyle = index % 2 === 0 ? "#45edff" : "#ff42dc";
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.lineWidth = Math.max(1, opacity * 5);
+      ctx.beginPath();
+      ctx.moveTo(current.x + offset, current.y);
+      ctx.lineTo(previous.x + offset, previous.y);
+      ctx.stroke();
+      if (index % 3 === 0) {
+        ctx.fillRect(current.x + offset, current.y, Math.max(2, opacity * 5), Math.max(2, opacity * 5));
+      }
+    }
+    ctx.restore();
+    return;
+  }
 
   for (let index = 0; index < ballTrail.length - 1; index++) {
     const current = ballTrail[index];
@@ -634,6 +822,14 @@ function drawBallTrail() {
     const age = index / (ballTrail.length - 1);
     const opacity = (1 - age) * 0.7;
     const width = (1 - age) * 10 + 1;
+
+    if (settings.trailStyle === "pixel") {
+      ctx.globalAlpha = opacity;
+      ctx.fillStyle = color;
+      const size = Math.max(2, width * 0.65);
+      ctx.fillRect(current.x - size / 2, current.y - size / 2, size, size);
+      continue;
+    }
 
     ctx.globalAlpha = opacity * 0.45;
     ctx.strokeStyle = color;
@@ -665,8 +861,8 @@ function draw(time) {
   drawBackground();
 
   drawBallTrail();
-  drawSkinImage(ctx, "paddle", settings.paddleSkin, paddle.x, paddle.y, paddle.width, paddle.height);
-  drawSkinImage(ctx, "ball", settings.ballSkin, ball.x, ball.y, ball.width, ball.height);
+  drawPaddle();
+  drawBall();
   drawBricks();  // bricks.js
 }
 
@@ -812,6 +1008,8 @@ function bindMenuControls() {
 function start() {
   populateWallpaperOptions();
   populateSkinOptions();
+  populateTrailOptions();
+  populateLegendaryOptions();
   resizeBackgroundStars();
   window.addEventListener("resize", resizeBackgroundStars);
   applySettings();

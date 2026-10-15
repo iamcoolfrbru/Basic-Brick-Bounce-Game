@@ -36,5 +36,8 @@ function makeBricks() {
 function drawBricks() {
   for (const brick of bricks) {
     drawSkinImage(ctx, "brick", settings.brickSkin, brick.x, brick.y, brick.width, brick.height);
+    if (settings.glitchBricks) {
+      drawGlitchArtifacts(ctx, brick.x, brick.y, brick.width, brick.height, brick.x + brick.y);
+    }
   }
 }
