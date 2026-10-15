@@ -221,9 +221,9 @@ function launchBall() {
 // ------------------------------------------------------------
 const paddle = {
   x: WIDTH / 2 - 45,
-  y: HEIGHT - 42,
+  y: HEIGHT - 58,
   width: 90,
-  height: 24,
+  height: 40,
   speed: 6
 };
 
@@ -258,7 +258,7 @@ function drawSkinImage(context, category, skinId, x, y, width, height) {
   }
 
   context.save();
-  context.globalCompositeOperation = "screen";
+  context.globalCompositeOperation = "source-over";
   context.drawImage(
     transparentSkinSheet,
     skin.x,
