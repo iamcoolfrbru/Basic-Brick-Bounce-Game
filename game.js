@@ -582,15 +582,19 @@ function drawLegendaryPreview(context, itemId) {
 
 function updateTrailOptionStates() {
   trailOptionContainer.querySelectorAll(".skin-option").forEach((button) => {
-    const owned = inventory.trail[button.dataset.trail] > 0;
+    const ownedCount = inventory.trail[button.dataset.trail] || 0;
+    const owned = ownedCount > 0;
     button.disabled = !owned;
     button.setAttribute("aria-pressed", String(owned && button.dataset.trail === settings.trailStyle));
-    button.querySelector("span").textContent = `${trailOptions.find((option) => option.id === button.dataset.trail).label} · ${owned ? `Owned ${inventory.trail[button.dataset.trail]}` : "Locked"}`;
+    button.querySelector("span").textContent = `${trailOptions.find((option) => option.id === button.dataset.trail).label} · ${owned ? `Owned ${ownedCount}` : "Locked"}`;
+    updateSellDuplicatesButton(button.parentElement, "trail", button.dataset.trail, ownedCount);
   });
 }
 
 function populateTrailOptions() {
   for (const option of trailOptions) {
+    const card = document.createElement("div");
+    card.className = "skin-option-card";
     const button = document.createElement("button");
     button.type = "button";
     button.className = "skin-option";
@@ -614,7 +618,8 @@ function populateTrailOptions() {
       settings.trailStyle = option.id;
       updateTrailOptionStates();
     });
-    trailOptionContainer.appendChild(button);
+    card.append(button, createSellDuplicatesButton("trail", option.id));
+    trailOptionContainer.appendChild(card);
   }
   updateTrailOptionStates();
 }
@@ -714,7 +719,45 @@ function saveProgress() {
 function updateCoinDisplay() {
   coinCounter.textContent = `${coins} coins`;
   coinCounter.setAttribute("aria-label", `${coins} coins`);
-  buyWoodenChestButton.disabled = coins < WOODEN_CHEST_PRICE;
+  chestOptionContainer.querySelectorAll("[data-chest-price]").forEach((button) => {
+    button.disabled = coins < Number(button.dataset.chestPrice);
+  });
+}
+
+function populateChestOptions() {
+  for (const chest of chestOptions) {
+    const card = document.createElement("section");
+    card.className = "chest-card";
+
+    const image = document.createElement("img");
+    image.src = chest.image;
+    image.alt = chest.label;
+
+    const details = document.createElement("div");
+    details.className = "chest-details";
+
+    const title = document.createElement("h2");
+    title.textContent = chest.label;
+
+    const odds = document.createElement("p");
+    odds.textContent = `${chest.odds.common}% Common · ${chest.odds.rare}% Rare · ${chest.odds.epic}% Epic`;
+
+    const purchaseButton = document.createElement("button");
+    purchaseButton.type = "button";
+    purchaseButton.className = "primary-button";
+    purchaseButton.dataset.chestPrice = String(chest.price);
+    purchaseButton.textContent = `Buy — ${chest.price} coins`;
+
+    const result = document.createElement("p");
+    result.className = "chest-result";
+    result.setAttribute("role", "status");
+    result.setAttribute("aria-live", "polite");
+
+    purchaseButton.addEventListener("click", () => openChest(chest, result));
+    details.append(title, odds, purchaseButton, result);
+    card.append(image, details);
+    chestOptionContainer.appendChild(card);
+  }
 }
 
 function updateCollectionOptionStates() {
@@ -730,15 +773,31 @@ function getCosmeticName(category, id) {
   return `${option.label} ${categoryLabel.charAt(0).toUpperCase()}${categoryLabel.slice(1)}`;
 }
 
-function openWoodenChest() {
-  if (coins < WOODEN_CHEST_PRICE) {
-    chestResult.textContent = "You need 100 coins to buy this chest.";
+function sellCosmeticDuplicates(category, id) {
+  const ownedCount = inventory[category][id] || 0;
+  if (ownedCount < 4) {
     return;
   }
 
-  coins -= WOODEN_CHEST_PRICE;
-  const roll = Math.random();
-  const tier = roll < 0.75 ? "common" : roll < 0.95 ? "rare" : "epic";
+  inventory[category][id] = ownedCount - 3;
+  coins += 100;
+  updateCoinDisplay();
+  updateCollectionOptionStates();
+  saveProgress();
+  collectionStatus.textContent = `Sold 3 duplicate ${getCosmeticName(category, id)} for 100 coins. ${inventory[category][id]} owned remain.`;
+}
+
+function openChest(chest, result) {
+  if (coins < chest.price) {
+    result.textContent = `You need ${chest.price} coins to buy this chest.`;
+    return;
+  }
+
+  coins -= chest.price;
+  const roll = Math.random() * 100;
+  const commonLimit = chest.odds.common;
+  const rareLimit = commonLimit + chest.odds.rare;
+  const tier = roll < commonLimit ? "common" : roll < rareLimit ? "rare" : "epic";
   const rewards = woodenChestLoot[tier];
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
   inventory[reward.category][reward.id] = (inventory[reward.category][reward.id] || 0) + 1;
@@ -746,7 +805,7 @@ function openWoodenChest() {
   updateCoinDisplay();
   updateCollectionOptionStates();
   saveProgress();
-  chestResult.textContent = `${tier.charAt(0).toUpperCase()}${tier.slice(1)} reward: ${getCosmeticName(reward.category, reward.id)} (owned ${inventory[reward.category][reward.id]}).`;
+  result.textContent = `${tier.charAt(0).toUpperCase()}${tier.slice(1)} reward: ${getCosmeticName(reward.category, reward.id)} (owned ${inventory[reward.category][reward.id]}).`;
 }
 
 
@@ -1222,7 +1281,6 @@ function bindMenuControls() {
   pauseButton.addEventListener("click", pauseGame);
   resumeButton.addEventListener("click", resumeGame);
   restartButton.addEventListener("click", restartPausedGame);
-  buyWoodenChestButton.addEventListener("click", openWoodenChest);
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveTab(button.dataset.tab));
@@ -1256,6 +1314,7 @@ function start() {
   populateSkinOptions();
   populateTrailOptions();
   populateLegendaryOptions();
+  populateChestOptions();
   updateCoinDisplay();
   resizeBackgroundStars();
   window.addEventListener("resize", resizeBackgroundStars);
