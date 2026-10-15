@@ -190,8 +190,8 @@ let ballLaunched = false;
 const ball = {
   x: 0,
   y: 0,
-  width: 12,
-  height: 12,
+  width: 20,
+  height: 20,
   vx: 0,
   vy: 0
 };
