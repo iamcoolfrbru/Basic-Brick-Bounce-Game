@@ -900,8 +900,18 @@ const keys = {};
 document.addEventListener("keydown", function (event) {
   const key = event.key.toLowerCase();
 
+  if ((event.code === "Backquote" || key === "`") && !event.repeat) {
+    event.preventDefault();
+    toggleCheatMenu();
+    return;
+  }
+
   if (key === "escape" && !event.repeat) {
     event.preventDefault();
+    if (cheatMenuOpen) {
+      closeCheatMenu();
+      return;
+    }
     if (gameRunning) {
       pauseGame();
     } else if (gamePaused) {
@@ -1091,12 +1101,16 @@ function update() {
 
     // The ball fell off the bottom: back to the center.
     if (ball.y > HEIGHT) {
-      lives--;
-      if (lives === 0) {
-        restartGame();
-      } else {
-        updateLivesDisplay();
+      if (infiniteLives) {
         resetBall();
+      } else {
+        lives--;
+        if (lives === 0) {
+          restartGame();
+        } else {
+          updateLivesDisplay();
+          resetBall();
+        }
       }
     }
   }
@@ -1294,6 +1308,34 @@ function resumeGame() {
   gameRunning = true;
   menuOverlay.classList.add("hidden");
   pauseButton.classList.remove("hidden");
+}
+
+function toggleCheatMenu() {
+  if (cheatMenuOpen) {
+    closeCheatMenu();
+    return;
+  }
+
+  resumeGameAfterCheat = gameRunning;
+  if (gameRunning) {
+    pauseGame();
+  }
+  cheatMenuOpen = true;
+  cheatOverlay.classList.remove("hidden");
+  closeCheatMenuButton.focus();
+}
+
+function closeCheatMenu() {
+  if (!cheatMenuOpen) {
+    return;
+  }
+
+  cheatMenuOpen = false;
+  cheatOverlay.classList.add("hidden");
+  if (resumeGameAfterCheat) {
+    resumeGame();
+  }
+  resumeGameAfterCheat = false;
 }
 
 function restartPausedGame() {
