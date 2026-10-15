@@ -85,8 +85,33 @@ const skinOptions = {
 };
 
 const skinSheet = new Image();
+const transparentSkinSheet = document.createElement("canvas");
+let transparentSkinSheetReady = false;
+skinSheet.addEventListener("load", function () {
+  transparentSkinSheet.width = skinSheet.naturalWidth;
+  transparentSkinSheet.height = skinSheet.naturalHeight;
+  const sheetContext = transparentSkinSheet.getContext("2d", { willReadFrequently: true });
+  sheetContext.drawImage(skinSheet, 0, 0);
+
+  const imageData = sheetContext.getImageData(
+    0,
+    0,
+    transparentSkinSheet.width,
+    transparentSkinSheet.height
+  );
+  for (let index = 0; index < imageData.data.length; index += 4) {
+    const red = imageData.data[index];
+    const green = imageData.data[index + 1];
+    const blue = imageData.data[index + 2];
+    if (Math.max(red, green, blue) < 48) {
+      imageData.data[index + 3] = 0;
+    }
+  }
+  sheetContext.putImageData(imageData, 0, 0);
+  transparentSkinSheetReady = true;
+  refreshSkinPreviews();
+});
 skinSheet.src = "assets/Designer.png";
-skinSheet.addEventListener("load", refreshSkinPreviews);
 
 const wallpaperOptions = [
   {
@@ -196,9 +221,9 @@ function launchBall() {
 // ------------------------------------------------------------
 const paddle = {
   x: WIDTH / 2 - 45,
-  y: HEIGHT - 30,
+  y: HEIGHT - 42,
   width: 90,
-  height: 12,
+  height: 24,
   speed: 6
 };
 
@@ -228,14 +253,14 @@ function applySettings() {
 
 function drawSkinImage(context, category, skinId, x, y, width, height) {
   const skin = skinOptions[category].find((option) => option.id === skinId);
-  if (!skin || !skinSheet.complete || !skinSheet.naturalWidth) {
+  if (!skin || !transparentSkinSheetReady) {
     return;
   }
 
   context.save();
   context.globalCompositeOperation = "screen";
   context.drawImage(
-    skinSheet,
+    transparentSkinSheet,
     skin.x,
     skin.y,
     skin.width,
