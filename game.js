@@ -123,7 +123,8 @@ const inventory = {
   paddle: { neon: 1 },
   ball: { classic: 1 },
   brick: { classic: 1 },
-  trail: { neon: 1 }
+  trail: { neon: 1 },
+  legendary: {}
 };
 
 const woodenChestLoot = {
@@ -170,37 +171,38 @@ const woodenChestLoot = {
     { category: "brick", id: "galaxy" },
     { category: "brick", id: "lava" },
     { category: "brick", id: "pixel" }
-  ]
+  ],
+  legendary: legendaryItems.map((item) => ({ category: "legendary", id: item.id }))
 };
 
 const chestOptions = [
   {
     id: "wood",
     label: "Wood Chest",
-    image: "assets/suggestion-this-is-an-extremely-rare-chest-and-it-gives-the-v0-6ar8vzu09r861.webp",
+    image: "assets/images.jpg",
     price: 100,
-    odds: { common: 75, rare: 20, epic: 5 }
+    odds: { common: 75, rare: 20, epic: 5, legendary: 0 }
   },
   {
     id: "gold",
     label: "Shiny Gold Wood Chest",
     image: "assets/0fc0ab027e01782ca5b2b3098ce399221b0fe238-1025x615.avif",
     price: 250,
-    odds: { common: 55, rare: 30, epic: 15 }
+    odds: { common: 55, rare: 30, epic: 15, legendary: 0 }
   },
   {
     id: "blue",
     label: "Blue Chest",
-    image: "assets/images.jpg",
+    image: "assets/suggestion-this-is-an-extremely-rare-chest-and-it-gives-the-v0-6ar8vzu09r861.webp",
     price: 500,
-    odds: { common: 30, rare: 40, epic: 30 }
+    odds: { common: 30, rare: 40, epic: 29, legendary: 1 }
   },
   {
     id: "purple",
     label: "Purple Chest",
     image: "assets/Epic_Loot_Chest.webp",
     price: 1000,
-    odds: { common: 10, rare: 35, epic: 55 }
+    odds: { common: 10, rare: 35, epic: 50, legendary: 5 }
   }
 ];
 
@@ -626,18 +628,26 @@ function populateTrailOptions() {
 
 function updateLegendaryOptionStates() {
   legendaryOptionContainer.querySelectorAll(".legendary-option").forEach((button) => {
-    button.setAttribute("aria-pressed", String(settings[button.dataset.legendary]));
+    const itemId = button.dataset.legendary;
+    const ownedCount = inventory.legendary[itemId] || 0;
+    const toggle = button.querySelector(".legendary-toggle");
+    toggle.disabled = ownedCount < 1;
+    toggle.setAttribute("aria-pressed", String(ownedCount > 0 && settings[itemId]));
+    button.querySelector(".legendary-label").textContent = `${legendaryItems.find((item) => item.id === itemId).label} · ${ownedCount > 0 ? `Owned ${ownedCount}` : "Locked"}`;
+    updateSellDuplicatesButton(button, "legendary", itemId, ownedCount);
   });
 }
 
 function populateLegendaryOptions() {
   for (const item of legendaryItems) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "skin-option legendary-option";
-    button.dataset.legendary = item.id;
-    button.setAttribute("aria-pressed", String(settings[item.id]));
-    button.setAttribute("aria-label", `Toggle ${item.label}`);
+    const card = document.createElement("div");
+    card.className = "skin-option-card legendary-option";
+    card.dataset.legendary = item.id;
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "skin-option legendary-option legendary-toggle";
+    toggle.setAttribute("aria-pressed", "false");
+    toggle.setAttribute("aria-label", `Toggle ${item.label}`);
 
     const preview = document.createElement("canvas");
     preview.width = 180;
@@ -646,18 +656,30 @@ function populateLegendaryOptions() {
     drawLegendaryPreview(preview.getContext("2d"), item.id);
 
     const label = document.createElement("span");
+    label.className = "legendary-label";
     label.textContent = item.label;
-    button.append(preview, label);
-    button.addEventListener("click", () => {
+    toggle.append(preview, label);
+    toggle.addEventListener("click", () => {
+      if (inventory.legendary[item.id] < 1) {
+        return;
+      }
       settings[item.id] = !settings[item.id];
       updateLegendaryOptionStates();
     });
-    legendaryOptionContainer.appendChild(button);
+    card.append(toggle, createSellDuplicatesButton("legendary", item.id));
+    legendaryOptionContainer.appendChild(card);
   }
+  updateLegendaryOptionStates();
 }
 
 function getCosmeticOptions(category) {
-  return category === "trail" ? trailOptions : skinOptions[category];
+  if (category === "trail") {
+    return trailOptions;
+  }
+  if (category === "legendary") {
+    return legendaryItems;
+  }
+  return skinOptions[category];
 }
 
 function loadProgress() {
@@ -740,7 +762,7 @@ function populateChestOptions() {
     title.textContent = chest.label;
 
     const odds = document.createElement("p");
-    odds.textContent = `${chest.odds.common}% Common · ${chest.odds.rare}% Rare · ${chest.odds.epic}% Epic`;
+    odds.textContent = `${chest.odds.common}% Common · ${chest.odds.rare}% Rare · ${chest.odds.epic}% Epic${chest.odds.legendary ? ` · ${chest.odds.legendary}% Legendary` : ""}`;
 
     const purchaseButton = document.createElement("button");
     purchaseButton.type = "button";
@@ -765,10 +787,14 @@ function updateCollectionOptionStates() {
     updateSkinOptionStates(category);
   }
   updateTrailOptionStates();
+  updateLegendaryOptionStates();
 }
 
 function getCosmeticName(category, id) {
   const option = getCosmeticOptions(category).find((item) => item.id === id);
+  if (category === "legendary") {
+    return option.label;
+  }
   const categoryLabel = category === "trail" ? "Trail" : category === "paddle" ? "Paddle" : category;
   return `${option.label} ${categoryLabel.charAt(0).toUpperCase()}${categoryLabel.slice(1)}`;
 }
@@ -797,15 +823,30 @@ function openChest(chest, result) {
   const roll = Math.random() * 100;
   const commonLimit = chest.odds.common;
   const rareLimit = commonLimit + chest.odds.rare;
-  const tier = roll < commonLimit ? "common" : roll < rareLimit ? "rare" : "epic";
+  const epicLimit = rareLimit + chest.odds.epic;
+  const tier = roll < commonLimit
+    ? "common"
+    : roll < rareLimit
+      ? "rare"
+      : roll < epicLimit
+        ? "epic"
+        : "legendary";
   const rewards = woodenChestLoot[tier];
-  const reward = rewards[Math.floor(Math.random() * rewards.length)];
-  inventory[reward.category][reward.id] = (inventory[reward.category][reward.id] || 0) + 1;
+  const givesMultiple = (chest.id === "purple" && (tier === "common" || tier === "rare")) ||
+    (chest.id === "blue" && tier === "common");
+  const rewardCount = givesMultiple && Math.random() < 0.5 ? 2 : 1;
+  const awardedItems = [];
+  for (let index = 0; index < rewardCount; index++) {
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    inventory[reward.category][reward.id] = (inventory[reward.category][reward.id] || 0) + 1;
+    awardedItems.push(getCosmeticName(reward.category, reward.id));
+  }
 
   updateCoinDisplay();
   updateCollectionOptionStates();
   saveProgress();
-  result.textContent = `${tier.charAt(0).toUpperCase()}${tier.slice(1)} reward: ${getCosmeticName(reward.category, reward.id)} (owned ${inventory[reward.category][reward.id]}).`;
+  const quantity = rewardCount > 1 ? " x2" : "";
+  result.textContent = `${tier.charAt(0).toUpperCase()}${tier.slice(1)} reward${quantity}: ${awardedItems.join(", ")}.`;
 }
 
 
