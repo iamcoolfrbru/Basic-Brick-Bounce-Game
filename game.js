@@ -627,7 +627,7 @@ function populateTrailOptions() {
 }
 
 function updateLegendaryOptionStates() {
-  legendaryOptionContainer.querySelectorAll(".legendary-option").forEach((button) => {
+  legendaryOptionContainer.querySelectorAll("[data-legendary]").forEach((button) => {
     const itemId = button.dataset.legendary;
     const ownedCount = inventory.legendary[itemId] || 0;
     const toggle = button.querySelector(".legendary-toggle");
