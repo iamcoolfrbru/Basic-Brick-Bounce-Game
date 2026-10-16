@@ -61,6 +61,7 @@ const wallpaperSelect = document.getElementById("wallpaperSelect");
 const ballSpeedControl = document.getElementById("ballSpeedControl");
 const paddleLengthControl = document.getElementById("paddleLengthControl");
 const paddleSpeedControl = document.getElementById("paddleSpeedControl");
+const mobileControlsControl = document.getElementById("mobileControlsControl");
 const ballSpeedValue = document.getElementById("ballSpeedValue");
 const paddleLengthValue = document.getElementById("paddleLengthValue");
 const paddleSpeedValue = document.getElementById("paddleSpeedValue");
@@ -73,6 +74,9 @@ let gamePaused = false;
 let infiniteLives = false;
 let cheatMenuOpen = false;
 let resumeGameAfterCheat = false;
+const MOBILE_CONTROLS_STORAGE_KEY = "basic-brick-bounce-mobile-controls-v1";
+let mobileControlsEnabled = window.matchMedia("(pointer: coarse)").matches ||
+  navigator.maxTouchPoints > 0;
 
 const settings = {
   wallpaper: "black-hole",
@@ -1744,6 +1748,35 @@ function bindMenuControls() {
     paddleSpeedValue.textContent = settings.paddleSpeed;
     paddle.speed = settings.paddleSpeed;
   });
+
+  mobileControlsControl.addEventListener("change", function () {
+    mobileControlsEnabled = mobileControlsControl.checked;
+    updateMobileControlsMode();
+    try {
+      localStorage.setItem(MOBILE_CONTROLS_STORAGE_KEY, String(mobileControlsEnabled));
+    } catch (error) {
+      console.error("Unable to save the mobile controls setting.", error);
+    }
+  });
+}
+
+function loadMobileControlsSetting() {
+  let savedSetting;
+  try {
+    savedSetting = localStorage.getItem(MOBILE_CONTROLS_STORAGE_KEY);
+  } catch (error) {
+    console.error("Unable to read the mobile controls setting.", error);
+  }
+
+  if (savedSetting === "true" || savedSetting === "false") {
+    mobileControlsEnabled = savedSetting === "true";
+  }
+  mobileControlsControl.checked = mobileControlsEnabled;
+  updateMobileControlsMode();
+}
+
+function updateMobileControlsMode() {
+  document.body.classList.toggle("mobile-controls-enabled", mobileControlsEnabled);
 }
 
 function changeCoinsFromCheat(action) {
@@ -1790,6 +1823,7 @@ function unlockAllCosmetics() {
 
 function start() {
   loadProgress();
+  loadMobileControlsSetting();
   populateWallpaperOptions();
   populateSkinOptions();
   populateTrailOptions();
