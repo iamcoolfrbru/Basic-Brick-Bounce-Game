@@ -38,6 +38,13 @@ const legendaryOptionContainer = document.querySelector("[data-legendary-options
 const chestOptionContainer = document.querySelector("[data-chest-options]");
 const chestTabButton = document.getElementById("chestTabButton");
 const coinCounter = document.getElementById("coinCounter");
+const rouletteLever = document.getElementById("rouletteLever");
+const rouletteReels = Array.from(document.querySelectorAll(".roulette-reel"));
+const rouletteRewardPicker = document.getElementById("rouletteRewardPicker");
+const rouletteRewardPrompt = document.getElementById("rouletteRewardPrompt");
+const rouletteRewardChoices = Array.from(document.querySelectorAll("[data-roulette-pick]"));
+const claimRouletteRewardButton = document.getElementById("claimRouletteReward");
+const rouletteStatus = document.getElementById("rouletteStatus");
 const collectionStatus = document.getElementById("collectionStatus");
 const wallpaperSelect = document.getElementById("wallpaperSelect");
 const ballSpeedControl = document.getElementById("ballSpeedControl");
@@ -129,7 +136,17 @@ const legendaryItems = [
 ];
 
 const PROGRESS_STORAGE_KEY = "basic-brick-bounce-progress-v1";
+const ROULETTE_SPIN_COST = 200;
+const rouletteSymbols = [
+  { id: "coin", label: "coin", icon: "🪙" },
+  { id: "seven", label: "seven", icon: "7" },
+  { id: "clover", label: "four-leaf clover", icon: "🍀" },
+  { id: "circle", label: "four-color wheel", icon: "" },
+  { id: "rose", label: "rose", icon: "🌹" }
+];
 let coins = 0;
+let rouletteSpinning = false;
+let rouletteRewardChoiceCount = 0;
 const inventory = {
   paddle: { neon: 1 },
   ball: { classic: 1 },
@@ -755,6 +772,168 @@ function updateCoinDisplay() {
   chestOptionContainer.querySelectorAll("[data-chest-price]").forEach((button) => {
     button.disabled = coins < Number(button.dataset.chestPrice);
   });
+  updateRouletteLeverState();
+}
+
+function updateRouletteLeverState() {
+  rouletteLever.disabled = rouletteSpinning ||
+    rouletteRewardChoiceCount > 0 ||
+    coins < ROULETTE_SPIN_COST;
+}
+
+function renderRouletteSymbol(reel, symbol, index) {
+  const symbolElement = reel.querySelector(".reel-symbol");
+  symbolElement.classList.toggle("quartered-circle", symbol.id === "circle");
+  symbolElement.textContent = symbol.icon;
+
+  if (symbol.id === "circle") {
+    for (let quarter = 0; quarter < 4; quarter++) {
+      symbolElement.appendChild(document.createElement("span"));
+    }
+  }
+
+  reel.setAttribute("aria-label", `Reel ${index + 1}: ${symbol.label}`);
+}
+
+function randomRouletteSymbol() {
+  return rouletteSymbols[Math.floor(Math.random() * rouletteSymbols.length)];
+}
+
+function populateRouletteRewardChoices() {
+  for (const select of rouletteRewardChoices) {
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choose a skin";
+    select.appendChild(placeholder);
+
+    for (const category of ["paddle", "ball", "brick", "trail"]) {
+      for (const cosmetic of getCosmeticOptions(category)) {
+        const option = document.createElement("option");
+        option.value = `${category}:${cosmetic.id}`;
+        option.textContent = getCosmeticName(category, cosmetic.id);
+        select.appendChild(option);
+      }
+    }
+  }
+}
+
+function showRouletteRewardPicker(count, prompt) {
+  rouletteRewardChoiceCount = count;
+  rouletteRewardPrompt.textContent = prompt;
+  rouletteRewardChoices.forEach((select, index) => {
+    select.value = "";
+    select.closest(".roulette-choice").hidden = index >= count;
+  });
+  claimRouletteRewardButton.textContent = `Claim ${count} free ${count === 1 ? "skin" : "skins"}`;
+  rouletteRewardPicker.hidden = false;
+  updateRouletteLeverState();
+}
+
+function creditRouletteCoins(amount) {
+  if (!Number.isSafeInteger(coins + amount)) {
+    rouletteStatus.textContent = "Your coin balance is at its limit; this coin reward could not be added.";
+    return false;
+  }
+
+  coins += amount;
+  updateCoinDisplay();
+  saveProgress();
+  return true;
+}
+
+function claimRouletteReward() {
+  const chosenValues = rouletteRewardChoices
+    .slice(0, rouletteRewardChoiceCount)
+    .map((select) => select.value);
+  if (chosenValues.length !== rouletteRewardChoiceCount ||
+      chosenValues.some((value) => !value) ||
+      new Set(chosenValues).size !== chosenValues.length) {
+    rouletteStatus.textContent = "Choose a different skin for each free pick.";
+    return;
+  }
+
+  const rewards = chosenValues.map((value) => {
+    const [category, id] = value.split(":");
+    if (!Object.hasOwn(inventory, category) ||
+        !getCosmeticOptions(category).some((cosmetic) => cosmetic.id === id)) {
+      throw new Error(`Invalid roulette skin selection: ${value}`);
+    }
+    return { category, id };
+  });
+
+  for (const reward of rewards) {
+    inventory[reward.category][reward.id] = (inventory[reward.category][reward.id] || 0) + 1;
+  }
+
+  const names = rewards.map((reward) => getCosmeticName(reward.category, reward.id));
+  rouletteRewardPicker.hidden = true;
+  rouletteRewardChoiceCount = 0;
+  updateCollectionOptionStates();
+  updateRouletteLeverState();
+  saveProgress();
+  rouletteStatus.textContent = `Free ${names.length === 1 ? "skin" : "skins"} claimed: ${names.join(", ")}.`;
+}
+
+async function spinRoulette() {
+  if (rouletteSpinning || rouletteRewardChoiceCount > 0) {
+    return;
+  }
+  if (coins < ROULETTE_SPIN_COST) {
+    rouletteStatus.textContent = "You need 200 coins to pull the lever.";
+    return;
+  }
+
+  coins -= ROULETTE_SPIN_COST;
+  rouletteSpinning = true;
+  rouletteRewardPicker.hidden = true;
+  rouletteLever.classList.add("pulled");
+  rouletteStatus.textContent = "The reels are spinning...";
+  updateCoinDisplay();
+  saveProgress();
+
+  const result = rouletteReels.map(() => randomRouletteSymbol());
+  const spinIntervals = rouletteReels.map((reel, index) => {
+    reel.classList.add("spinning");
+    return window.setInterval(() => {
+      renderRouletteSymbol(reel, randomRouletteSymbol(), index);
+    }, 90);
+  });
+
+  for (let index = 0; index < rouletteReels.length; index++) {
+    await new Promise((resolve) => window.setTimeout(resolve, 600));
+    window.clearInterval(spinIntervals[index]);
+    rouletteReels[index].classList.remove("spinning");
+    renderRouletteSymbol(rouletteReels[index], result[index], index);
+  }
+
+  rouletteLever.classList.remove("pulled");
+  rouletteSpinning = false;
+
+  if (result.every((symbol) => symbol.id === "coin")) {
+    if (creditRouletteCoins(500)) {
+      rouletteStatus.textContent = "Jackpot! You won 500 coins.";
+    }
+  } else if (result.every((symbol) => symbol.id === "seven")) {
+    rouletteStatus.textContent = "Triple sevens! Pick 3 different skins for free.";
+    showRouletteRewardPicker(3, "Choose three different skins to add to your collection:");
+  } else if (result.every((symbol) => symbol.id === "clover")) {
+    if (creditRouletteCoins(1000)) {
+      rouletteStatus.textContent = "Lucky clovers! You won 1,000 coins.";
+    }
+  } else if (result.every((symbol) => symbol.id === "circle")) {
+    const reward = woodenChestLoot.epic[Math.floor(Math.random() * woodenChestLoot.epic.length)];
+    inventory[reward.category][reward.id] = (inventory[reward.category][reward.id] || 0) + 1;
+    updateCollectionOptionStates();
+    saveProgress();
+    rouletteStatus.textContent = `Color-wheel jackpot! You won an epic ${getCosmeticName(reward.category, reward.id)}.`;
+  } else if (result.every((symbol) => symbol.id === "rose")) {
+    rouletteStatus.textContent = "Three roses! Pick one skin for free.";
+    showRouletteRewardPicker(1, "Choose one skin to add to your collection:");
+  } else {
+    rouletteStatus.textContent = "No match this time. Pull the lever for another spin!";
+  }
+
+  updateRouletteLeverState();
 }
 
 function populateChestOptions() {
@@ -1375,6 +1554,8 @@ function bindMenuControls() {
   pauseButton.addEventListener("click", pauseGame);
   resumeButton.addEventListener("click", resumeGame);
   restartButton.addEventListener("click", restartPausedGame);
+  rouletteLever.addEventListener("click", spinRoulette);
+  claimRouletteRewardButton.addEventListener("click", claimRouletteReward);
   closeCheatMenuButton.addEventListener("click", closeCheatMenu);
   infiniteLivesControl.addEventListener("change", function () {
     infiniteLives = infiniteLivesControl.checked;
@@ -1467,6 +1648,7 @@ function start() {
   populateTrailOptions();
   populateLegendaryOptions();
   populateChestOptions();
+  populateRouletteRewardChoices();
   updateCoinDisplay();
   resizeBackgroundStars();
   window.addEventListener("resize", resizeBackgroundStars);

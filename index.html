@@ -34,6 +34,7 @@
             <button type="button" class="tab-button active" data-tab="main">Main</button>
             <button type="button" class="tab-button" data-tab="settings">Settings</button>
             <button type="button" class="tab-button" data-tab="customization">Customize</button>
+            <button type="button" class="tab-button" data-tab="roulette">Roulette</button>
             <button id="chestTabButton" type="button" class="tab-button hidden" data-tab="chest">Chests</button>
           </div>
 
@@ -101,6 +102,52 @@
               <div class="skin-options" data-legendary-options></div>
             </section>
             <p id="collectionStatus" class="collection-status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div id="rouletteTab" class="tab-panel">
+            <section class="roulette-machine" aria-labelledby="rouletteTitle">
+              <h2 id="rouletteTitle">Lucky 7 Roulette</h2>
+              <p class="roulette-cost">One spin costs <strong>200 coins</strong></p>
+              <div class="roulette-reels" aria-label="Roulette reels">
+                <div class="roulette-reel" role="img" aria-label="Reel 1: coin">
+                  <span class="reel-symbol" data-roulette-symbol="0" aria-hidden="true">🪙</span>
+                </div>
+                <div class="roulette-reel" role="img" aria-label="Reel 2: seven">
+                  <span class="reel-symbol" data-roulette-symbol="1" aria-hidden="true">7</span>
+                </div>
+                <div class="roulette-reel" role="img" aria-label="Reel 3: clover">
+                  <span class="reel-symbol" data-roulette-symbol="2" aria-hidden="true">🍀</span>
+                </div>
+              </div>
+              <div class="roulette-prizes" aria-label="Winning combinations">
+                <p>🪙🪙🪙 500 coins</p>
+                <p>777 Pick 3 free skins</p>
+                <p>🍀🍀🍀 1,000 coins</p>
+                <p><span class="roulette-prize-wheels" aria-hidden="true"><span></span><span></span><span></span></span> Three color wheels · random epic skin</p>
+                <p>🌹🌹🌹 Pick 1 free skin</p>
+              </div>
+              <button id="rouletteLever" class="roulette-lever" type="button" aria-label="Pull the roulette lever">
+                <span class="lever-track" aria-hidden="true"><span class="lever-knob"></span></span>
+                <span>Pull Lever · 200 Coins</span>
+              </button>
+              <p id="rouletteStatus" class="roulette-status" role="status" aria-live="polite">Line up a winning combination!</p>
+              <div id="rouletteRewardPicker" class="roulette-reward-picker" hidden>
+                <p id="rouletteRewardPrompt"></p>
+                <label class="roulette-choice">
+                  <span data-choice-label="0">Skin 1</span>
+                  <select data-roulette-pick aria-label="First free skin"></select>
+                </label>
+                <label class="roulette-choice">
+                  <span data-choice-label="1">Skin 2</span>
+                  <select data-roulette-pick aria-label="Second free skin"></select>
+                </label>
+                <label class="roulette-choice">
+                  <span data-choice-label="2">Skin 3</span>
+                  <select data-roulette-pick aria-label="Third free skin"></select>
+                </label>
+                <button id="claimRouletteReward" class="primary-button" type="button">Claim free skins</button>
+              </div>
+            </section>
           </div>
 
           <div id="chestTab" class="tab-panel">

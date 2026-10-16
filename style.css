@@ -221,6 +221,7 @@ canvas#starfield {
 
 .tab-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -470,6 +471,233 @@ button:focus-visible {
 .chest-result {
   min-height: 1.5em;
   color: #8be9fd;
+}
+
+.roulette-machine {
+  padding: 14px;
+  border: 3px solid #c99b4b;
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(255, 219, 132, 0.12), transparent 42%),
+    #24160f;
+  box-shadow: inset 0 0 0 3px rgba(255, 235, 179, 0.12), 0 0 22px rgba(244, 190, 85, 0.2);
+}
+
+.roulette-machine h2 {
+  margin: 0 0 4px;
+  color: #ffe6a3;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.roulette-cost {
+  color: #e9d3a3;
+}
+
+.roulette-reels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+  padding: 10px;
+  border: 3px solid #8b5a25;
+  border-radius: 10px;
+  background: #100b08;
+  perspective: 500px;
+}
+
+.roulette-reel {
+  display: grid;
+  min-width: 0;
+  height: 84px;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid #e5bd6b;
+  border-radius: 8px;
+  background: linear-gradient(#fff5d9, #d9c28f 48%, #fff5d9);
+  box-shadow: inset 0 0 12px rgba(72, 41, 9, 0.45);
+}
+
+.reel-symbol {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #9e1717;
+  font-family: Georgia, serif;
+  font-size: 3.3rem;
+  font-weight: bold;
+  text-shadow: 0 2px 0 #fff;
+}
+
+.roulette-reel.spinning .reel-symbol {
+  animation: roulette-barrel-spin 150ms linear infinite;
+}
+
+.reel-symbol.quartered-circle {
+  width: 54px;
+  height: 54px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px #222;
+}
+
+.quartered-circle span:nth-child(1) {
+  background: #ee3434;
+}
+
+.quartered-circle span:nth-child(2) {
+  background: #ffd438;
+}
+
+.quartered-circle span:nth-child(3) {
+  background: #36bb62;
+}
+
+.quartered-circle span:nth-child(4) {
+  background: #3986ed;
+}
+
+.roulette-prizes {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 12px;
+  color: #f4e6c7;
+  text-align: left;
+}
+
+.roulette-prizes p {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.roulette-prize-wheels {
+  display: inline-flex;
+  gap: 2px;
+  vertical-align: middle;
+}
+
+.roulette-prize-wheels span {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: conic-gradient(#ee3434 0 25%, #ffd438 25% 50%, #36bb62 50% 75%, #3986ed 75%);
+}
+
+.roulette-lever {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 2px solid #f0ca7a;
+  border-radius: 8px;
+  background: linear-gradient(#9a2424, #5b1010);
+  color: #fff1d0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.roulette-lever:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.lever-track {
+  position: relative;
+  width: 14px;
+  height: 30px;
+  border: 2px solid #e9c777;
+  border-radius: 9px;
+  background: #27180f;
+}
+
+.lever-knob {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffe7a6;
+  border-radius: 50%;
+  background: #c33030;
+  box-shadow: 0 0 7px rgba(255, 203, 112, 0.5);
+  transform: translateX(-50%);
+  transition: top 120ms ease-in;
+}
+
+.roulette-lever.pulled .lever-knob {
+  top: 16px;
+}
+
+.roulette-status {
+  min-height: 2.5em;
+  margin: 10px 0 0;
+  color: #ffe6a3;
+  font-weight: bold;
+}
+
+.roulette-reward-picker {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 230, 163, 0.35);
+  text-align: left;
+}
+
+.roulette-reward-picker[hidden] {
+  display: none;
+}
+
+.roulette-reward-picker > p {
+  margin: 0;
+  color: #ffe6a3;
+}
+
+.roulette-choice {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.roulette-choice[hidden] {
+  display: none;
+}
+
+.roulette-choice select {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #e5bd6b;
+  background: #100b08;
+  color: #fff;
+  font: inherit;
+}
+
+@keyframes roulette-barrel-spin {
+  0% {
+    opacity: 0.45;
+    transform: rotateX(0) translateY(-18px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: rotateX(180deg) translateY(0);
+  }
+  100% {
+    opacity: 0.45;
+    transform: rotateX(360deg) translateY(18px);
+  }
 }
 
 .skin-option:hover,
