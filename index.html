@@ -198,7 +198,12 @@
       </div>
       <canvas id="game" width="600" height="450" aria-label="Block Breaker game"></canvas>
     </div>
-    <p>Move the paddle with the left and right arrow keys, or A and D. Press Escape to pause.</p>
+    <div id="touchControls" class="touch-controls hidden" role="group" aria-label="Touch game controls">
+      <button id="moveLeftButton" type="button" aria-label="Move paddle left">◀</button>
+      <button id="launchButton" type="button">Launch</button>
+      <button id="moveRightButton" type="button" aria-label="Move paddle right">▶</button>
+    </div>
+    <p>Move with the arrow keys or A and D. On mobile, use the touch buttons; press Escape or tap Pause to open the menu.</p>
   </main>
 
   <div id="chestRevealOverlay" class="chest-reveal-overlay" hidden>

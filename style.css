@@ -208,6 +208,8 @@ canvas#starfield {
   background: rgba(10, 10, 16, 0.8);
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   animation: menu-panel-enter 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
     menu-panel-zoom 7s ease-in-out 420ms infinite alternate;
 }
@@ -310,6 +312,10 @@ button:focus-visible {
   color: #fff;
   cursor: pointer;
   font: inherit;
+}
+
+.touch-controls {
+  display: none;
 }
 
 .setting-row {
@@ -837,6 +843,54 @@ p {
   margin: 12px 0 0;
   font-size: 14px;
   line-height: 1.5;
+}
+
+@media (pointer: coarse) {
+  .touch-controls:not(.hidden) {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .touch-controls button {
+    min-height: 54px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    background: rgba(10, 10, 16, 0.88);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 1.2rem;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .touch-controls button:active {
+    border-color: #8be9fd;
+    background: rgba(139, 233, 253, 0.2);
+  }
+
+  #moveLeftButton,
+  #moveRightButton {
+    touch-action: none;
+  }
+
+  #launchButton {
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pause-button,
+  .tab-button {
+    min-height: 44px;
+  }
+
+  .primary-button {
+    min-height: 46px;
+  }
 }
 
 @keyframes menu-overlay-enter {

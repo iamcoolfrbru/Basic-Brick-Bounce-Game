@@ -45,6 +45,10 @@ const chestRevealDescription = document.getElementById("chestRevealDescription")
 const closeChestRevealButton = document.getElementById("closeChestRevealButton");
 const nextChestRewardButton = document.getElementById("nextChestRewardButton");
 const coinCounter = document.getElementById("coinCounter");
+const touchControls = document.getElementById("touchControls");
+const moveLeftButton = document.getElementById("moveLeftButton");
+const moveRightButton = document.getElementById("moveRightButton");
+const launchButton = document.getElementById("launchButton");
 const rouletteLever = document.getElementById("rouletteLever");
 const rouletteReels = Array.from(document.querySelectorAll(".roulette-reel"));
 const rouletteRewardPicker = document.getElementById("rouletteRewardPicker");
@@ -1168,6 +1172,7 @@ function updateLivesDisplay() {
 // keys["arrowleft"] is true while the left arrow is held down.
 // ------------------------------------------------------------
 const keys = {};
+const touchDirections = { left: false, right: false };
 
 document.addEventListener("keydown", function (event) {
   const key = event.key.toLowerCase();
@@ -1203,6 +1208,7 @@ document.addEventListener("keydown", function (event) {
     gameRunning = true;
     menuOverlay.classList.add("hidden");
     pauseButton.classList.remove("hidden");
+    touchControls.classList.remove("hidden");
     restartGame();
   }
 
@@ -1219,6 +1225,36 @@ document.addEventListener("keydown", function (event) {
 document.addEventListener("keyup", function (event) {
   keys[event.key.toLowerCase()] = false;
 });
+
+function bindTouchDirection(button, direction) {
+  const key = direction === "left" ? "left" : "right";
+
+  button.addEventListener("pointerdown", (event) => {
+    if (!event.isPrimary && event.pointerType !== "touch") {
+      return;
+    }
+    event.preventDefault();
+    touchDirections[key] = true;
+    button.setPointerCapture(event.pointerId);
+  });
+
+  const releaseDirection = (event) => {
+    touchDirections[key] = false;
+    if (button.hasPointerCapture(event.pointerId)) {
+      button.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  button.addEventListener("pointerup", releaseDirection);
+  button.addEventListener("pointercancel", releaseDirection);
+  button.addEventListener("lostpointercapture", () => {
+    touchDirections[key] = false;
+  });
+}
+
+bindTouchDirection(moveLeftButton, "left");
+bindTouchDirection(moveRightButton, "right");
+launchButton.addEventListener("click", launchBall);
 
 
 // ------------------------------------------------------------
@@ -1393,10 +1429,10 @@ function update() {
 }
 
 function movePaddle() {
-  if (keys["arrowleft"] || keys["a"]) {
+  if (keys["arrowleft"] || keys["a"] || touchDirections.left) {
     paddle.x = paddle.x - paddle.speed;
   }
-  if (keys["arrowright"] || keys["d"]) {
+  if (keys["arrowright"] || keys["d"] || touchDirections.right) {
     paddle.x = paddle.x + paddle.speed;
   }
 
@@ -1544,6 +1580,7 @@ function startMenu() {
   chestTabButton.classList.add("hidden");
   gameRunning = false;
   pauseButton.classList.add("hidden");
+  touchControls.classList.add("hidden");
   startMenuActions.classList.remove("hidden");
   pauseMenuActions.classList.add("hidden");
 }
@@ -1554,6 +1591,7 @@ function startGame() {
   chestTabButton.classList.add("hidden");
   menuOverlay.classList.add("hidden");
   pauseButton.classList.remove("hidden");
+  touchControls.classList.remove("hidden");
   restartGame();
 }
 
@@ -1567,12 +1605,15 @@ function pauseGame() {
   Object.keys(keys).forEach((key) => {
     keys[key] = false;
   });
+  touchDirections.left = false;
+  touchDirections.right = false;
   startMenuActions.classList.add("hidden");
   pauseMenuActions.classList.remove("hidden");
   chestTabButton.classList.remove("hidden");
   setActiveTab("main");
   menuOverlay.classList.remove("hidden");
   pauseButton.classList.add("hidden");
+  touchControls.classList.add("hidden");
 }
 
 function resumeGame() {
@@ -1584,6 +1625,7 @@ function resumeGame() {
   gameRunning = true;
   menuOverlay.classList.add("hidden");
   pauseButton.classList.remove("hidden");
+  touchControls.classList.remove("hidden");
 }
 
 function toggleCheatMenu() {
@@ -1619,6 +1661,7 @@ function restartPausedGame() {
   gameRunning = true;
   menuOverlay.classList.add("hidden");
   pauseButton.classList.remove("hidden");
+  touchControls.classList.remove("hidden");
   restartGame();
 }
 
