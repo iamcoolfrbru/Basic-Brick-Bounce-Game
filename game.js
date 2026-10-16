@@ -37,6 +37,13 @@ const trailOptionContainer = document.querySelector("[data-trail-options]");
 const legendaryOptionContainer = document.querySelector("[data-legendary-options]");
 const chestOptionContainer = document.querySelector("[data-chest-options]");
 const chestTabButton = document.getElementById("chestTabButton");
+const chestRevealOverlay = document.getElementById("chestRevealOverlay");
+const chestRevealCard = document.querySelector(".chest-reveal-card");
+const chestRevealTier = document.getElementById("chestRevealTier");
+const chestRevealPreview = document.getElementById("chestRevealPreview");
+const chestRevealDescription = document.getElementById("chestRevealDescription");
+const closeChestRevealButton = document.getElementById("closeChestRevealButton");
+const nextChestRewardButton = document.getElementById("nextChestRewardButton");
 const coinCounter = document.getElementById("coinCounter");
 const rouletteLever = document.getElementById("rouletteLever");
 const rouletteReels = Array.from(document.querySelectorAll(".roulette-reel"));
@@ -147,6 +154,9 @@ const rouletteSymbols = [
 let coins = 0;
 let rouletteSpinning = false;
 let rouletteRewardChoiceCount = 0;
+let chestRevealRewards = [];
+let chestRevealIndex = 0;
+let chestRevealReturnFocus = null;
 const inventory = {
   paddle: { neon: 1 },
   ball: { classic: 1 },
@@ -260,6 +270,9 @@ skinSheet.addEventListener("load", function () {
   sheetContext.putImageData(imageData, 0, 0);
   transparentSkinSheetReady = true;
   refreshSkinPreviews();
+  if (!chestRevealOverlay.hidden && chestRevealRewards[chestRevealIndex]) {
+    drawChestRewardPreview(chestRevealRewards[chestRevealIndex]);
+  }
 });
 skinSheet.src = "assets/Designer.png";
 
@@ -567,9 +580,12 @@ function populateSkinOptions() {
 }
 
 function drawTrailPreview(context, option) {
-  context.fillStyle = "#050a15";
-  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+  const scaleX = context.canvas.width / 180;
+  const scaleY = context.canvas.height / 64;
   context.save();
+  context.scale(scaleX, scaleY);
+  context.fillStyle = "#050a15";
+  context.fillRect(0, 0, 180, 64);
   context.lineCap = "round";
   context.shadowColor = option.color;
   context.shadowBlur = 10;
@@ -583,9 +599,12 @@ function drawTrailPreview(context, option) {
 }
 
 function drawLegendaryPreview(context, itemId) {
-  context.fillStyle = "#050a15";
-  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+  const scaleX = context.canvas.width / 180;
+  const scaleY = context.canvas.height / 64;
   context.save();
+  context.scale(scaleX, scaleY);
+  context.fillStyle = "#050a15";
+  context.fillRect(0, 0, 180, 64);
   context.globalCompositeOperation = "lighter";
   context.fillStyle = "#ff42dc";
   context.fillRect(43, 22, 84, 20);
@@ -608,6 +627,78 @@ function drawLegendaryPreview(context, itemId) {
   }
 
   context.restore();
+}
+
+function drawChestRewardPreview(reward) {
+  const context = chestRevealPreview.getContext("2d");
+
+  if (reward.category === "trail") {
+    drawTrailPreview(context, trailOptions.find((option) => option.id === reward.id));
+  } else if (reward.category === "legendary") {
+    drawLegendaryPreview(context, reward.id);
+  } else {
+    const skin = skinOptions[reward.category].find((option) => option.id === reward.id);
+    drawSkinPreview(context, reward.category, skin);
+  }
+}
+
+function renderChestRewardCard(tier) {
+  const reward = chestRevealRewards[chestRevealIndex];
+  chestRevealTier.textContent = `${tier} reward · ${chestRevealIndex + 1} of ${chestRevealRewards.length}`;
+  chestRevealDescription.textContent = getCosmeticName(reward.category, reward.id);
+  nextChestRewardButton.textContent = chestRevealIndex + 1 < chestRevealRewards.length
+    ? "Next reward"
+    : "Got it";
+  nextChestRewardButton.disabled = true;
+  drawChestRewardPreview(reward);
+
+  chestRevealCard.classList.remove("revealing");
+  chestRevealCard.onanimationend = (event) => {
+    if (event.target === chestRevealCard) {
+      chestRevealCard.onanimationend = null;
+      nextChestRewardButton.disabled = false;
+    }
+  };
+  void chestRevealCard.offsetWidth;
+  chestRevealCard.classList.add("revealing");
+}
+
+function showChestRewardReveal(tier, rewards, returnFocus) {
+  chestRevealRewards = rewards;
+  chestRevealIndex = 0;
+  chestRevealReturnFocus = returnFocus;
+  chestRevealOverlay.hidden = false;
+  renderChestRewardCard(tier);
+  closeChestRevealButton.focus();
+}
+
+function closeChestRewardReveal() {
+  if (chestRevealOverlay.hidden) {
+    return;
+  }
+
+  chestRevealOverlay.hidden = true;
+  chestRevealCard.classList.remove("revealing");
+  chestRevealCard.onanimationend = null;
+  chestRevealRewards = [];
+  chestRevealIndex = 0;
+  if (chestRevealReturnFocus && chestRevealReturnFocus.isConnected) {
+    chestRevealReturnFocus.focus();
+  }
+  chestRevealReturnFocus = null;
+}
+
+function advanceChestRewardReveal() {
+  if (nextChestRewardButton.disabled) {
+    return;
+  }
+  if (chestRevealIndex + 1 >= chestRevealRewards.length) {
+    closeChestRewardReveal();
+    return;
+  }
+
+  chestRevealIndex++;
+  renderChestRewardCard(chestRevealTier.textContent.split(" reward · ")[0]);
 }
 
 function updateTrailOptionStates() {
@@ -965,7 +1056,7 @@ function populateChestOptions() {
     result.setAttribute("role", "status");
     result.setAttribute("aria-live", "polite");
 
-    purchaseButton.addEventListener("click", () => openChest(chest, result));
+    purchaseButton.addEventListener("click", () => openChest(chest, result, purchaseButton));
     details.append(title, odds, purchaseButton, result);
     card.append(image, details);
     chestOptionContainer.appendChild(card);
@@ -1003,7 +1094,7 @@ function sellCosmeticDuplicates(category, id) {
   collectionStatus.textContent = `Sold 3 duplicate ${getCosmeticName(category, id)} for 100 coins. ${inventory[category][id]} owned remain.`;
 }
 
-function openChest(chest, result) {
+function openChest(chest, result, purchaseButton) {
   if (coins < chest.price) {
     result.textContent = `You need ${chest.price} coins to buy this chest.`;
     return;
@@ -1029,14 +1120,16 @@ function openChest(chest, result) {
   for (let index = 0; index < rewardCount; index++) {
     const reward = rewards[Math.floor(Math.random() * rewards.length)];
     inventory[reward.category][reward.id] = (inventory[reward.category][reward.id] || 0) + 1;
-    awardedItems.push(getCosmeticName(reward.category, reward.id));
+    awardedItems.push({ category: reward.category, id: reward.id });
   }
 
   updateCoinDisplay();
   updateCollectionOptionStates();
   saveProgress();
   const quantity = rewardCount > 1 ? " x2" : "";
-  result.textContent = `${tier.charAt(0).toUpperCase()}${tier.slice(1)} reward${quantity}: ${awardedItems.join(", ")}.`;
+  const names = awardedItems.map((item) => getCosmeticName(item.category, item.id));
+  result.textContent = `${tier.charAt(0).toUpperCase()}${tier.slice(1)} reward${quantity}: ${names.join(", ")}.`;
+  showChestRewardReveal(tier, awardedItems, purchaseButton);
 }
 
 
@@ -1087,6 +1180,10 @@ document.addEventListener("keydown", function (event) {
 
   if (key === "escape" && !event.repeat) {
     event.preventDefault();
+    if (!chestRevealOverlay.hidden) {
+      closeChestRewardReveal();
+      return;
+    }
     if (cheatMenuOpen) {
       closeCheatMenu();
       return;
@@ -1554,6 +1651,13 @@ function bindMenuControls() {
   pauseButton.addEventListener("click", pauseGame);
   resumeButton.addEventListener("click", resumeGame);
   restartButton.addEventListener("click", restartPausedGame);
+  closeChestRevealButton.addEventListener("click", closeChestRewardReveal);
+  nextChestRewardButton.addEventListener("click", advanceChestRewardReveal);
+  chestRevealOverlay.addEventListener("click", (event) => {
+    if (event.target === chestRevealOverlay) {
+      closeChestRewardReveal();
+    }
+  });
   rouletteLever.addEventListener("click", spinRoulette);
   claimRouletteRewardButton.addEventListener("click", claimRouletteReward);
   closeCheatMenuButton.addEventListener("click", closeCheatMenu);

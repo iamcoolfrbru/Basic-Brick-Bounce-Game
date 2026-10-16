@@ -473,6 +473,116 @@ button:focus-visible {
   color: #8be9fd;
 }
 
+.chest-reveal-overlay[hidden] {
+  display: none;
+}
+
+.chest-reveal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(7px);
+  perspective: 1200px;
+}
+
+.chest-reveal-card {
+  position: relative;
+  display: grid;
+  width: min(88vw, 620px);
+  min-height: min(66vh, 420px);
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: clamp(22px, 5vw, 42px);
+  border: 3px solid #f4d77a;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 0, rgba(244, 215, 122, 0.2), transparent 62%),
+    linear-gradient(145deg, #171525, #090b14 65%, #21170d);
+  box-shadow: 0 0 28px rgba(244, 215, 122, 0.35), inset 0 0 30px rgba(139, 233, 253, 0.08);
+  text-align: center;
+  transform-style: preserve-3d;
+}
+
+.chest-reveal-card.revealing {
+  animation: chest-card-reveal 1.2s cubic-bezier(0.16, 0.78, 0.23, 1) both;
+}
+
+.chest-reveal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.5rem;
+}
+
+.chest-reveal-tier {
+  margin: 0;
+  color: #f4d77a;
+  font-size: 0.9rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.chest-reveal-card h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 4vw, 2rem);
+}
+
+#chestRevealPreview {
+  display: block;
+  width: min(100%, 480px);
+  height: auto;
+  aspect-ratio: 2.8 / 1;
+  border: 1px solid rgba(139, 233, 253, 0.35);
+  border-radius: 10px;
+  background: #050a15;
+  box-shadow: 0 0 20px rgba(139, 233, 253, 0.16);
+}
+
+.chest-reveal-name {
+  min-height: 1.5em;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1rem, 3vw, 1.3rem);
+  font-weight: bold;
+}
+
+.chest-reveal-card .primary-button {
+  max-width: 260px;
+  border-color: #f4d77a;
+  color: #ffe9ac;
+}
+
+@keyframes chest-card-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(32vh) scale(0.08) rotateY(0deg) rotateZ(-18deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-1vh) scale(0.86) rotateY(560deg) rotateZ(8deg);
+  }
+  76% {
+    transform: translateY(1vh) scale(1.04) rotateY(690deg) rotateZ(-3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateY(720deg) rotateZ(0);
+  }
+}
+
 .roulette-machine {
   padding: 14px;
   border: 3px solid #c99b4b;

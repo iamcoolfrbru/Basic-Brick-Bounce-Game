@@ -201,6 +201,17 @@
     <p>Move the paddle with the left and right arrow keys, or A and D. Press Escape to pause.</p>
   </main>
 
+  <div id="chestRevealOverlay" class="chest-reveal-overlay" hidden>
+    <section class="chest-reveal-card" role="dialog" aria-modal="true" aria-labelledby="chestRevealTitle" aria-describedby="chestRevealDescription">
+      <button id="closeChestRevealButton" class="chest-reveal-close" type="button" aria-label="Close reward reveal">×</button>
+      <p id="chestRevealTier" class="chest-reveal-tier"></p>
+      <h2 id="chestRevealTitle">Chest reward</h2>
+      <canvas id="chestRevealPreview" width="360" height="128" aria-hidden="true"></canvas>
+      <p id="chestRevealDescription" class="chest-reveal-name"></p>
+      <button id="nextChestRewardButton" class="primary-button" type="button">Got it</button>
+    </section>
+  </div>
+
   <!-- The order matters: game.js goes first because the other files use its settings. -->
   <script src="game.js"></script>
   <script src="bricks.js"></script>
