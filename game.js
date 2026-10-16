@@ -25,9 +25,11 @@ const pauseMenuActions = document.getElementById("pauseMenuActions");
 const cheatOverlay = document.getElementById("cheatOverlay");
 const closeCheatMenuButton = document.getElementById("closeCheatMenuButton");
 const infiniteLivesControl = document.getElementById("infiniteLivesControl");
+const infiniteCoinsControl = document.getElementById("infiniteCoinsControl");
 const cheatCoinAmount = document.getElementById("cheatCoinAmount");
 const giveCoinsButton = document.getElementById("giveCoinsButton");
 const takeCoinsButton = document.getElementById("takeCoinsButton");
+const zeroCoinsButton = document.getElementById("zeroCoinsButton");
 const unlockAllSkinsButton = document.getElementById("unlockAllSkinsButton");
 const cheatStatus = document.getElementById("cheatStatus");
 const tabButtons = document.querySelectorAll(".tab-button");
@@ -72,6 +74,7 @@ let lives = MAX_LIVES;
 let gameRunning = false;
 let gamePaused = false;
 let infiniteLives = false;
+let infiniteCoins = false;
 let cheatMenuOpen = false;
 let resumeGameAfterCheat = false;
 const MOBILE_CONTROLS_STORAGE_KEY = "basic-brick-bounce-mobile-controls-v1";
@@ -836,6 +839,9 @@ function loadProgress() {
   if (Number.isSafeInteger(progress.coins) && progress.coins >= 0) {
     coins = progress.coins;
   }
+  if (typeof progress.infiniteCoins === "boolean") {
+    infiniteCoins = progress.infiniteCoins;
+  }
 
   if (!progress.inventory || typeof progress.inventory !== "object") {
     return;
@@ -859,17 +865,17 @@ function loadProgress() {
 
 function saveProgress() {
   try {
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ coins, inventory }));
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ coins, infiniteCoins, inventory }));
   } catch (error) {
     console.error("Unable to save game progress.", error);
   }
 }
 
 function updateCoinDisplay() {
-  coinCounter.textContent = `${coins} coins`;
-  coinCounter.setAttribute("aria-label", `${coins} coins`);
+  coinCounter.textContent = `${infiniteCoins ? "∞" : coins} coins`;
+  coinCounter.setAttribute("aria-label", infiniteCoins ? "Infinite coins" : `${coins} coins`);
   chestOptionContainer.querySelectorAll("[data-chest-price]").forEach((button) => {
-    button.disabled = coins < Number(button.dataset.chestPrice);
+    button.disabled = !infiniteCoins && coins < Number(button.dataset.chestPrice);
   });
   updateRouletteLeverState();
 }
@@ -877,7 +883,7 @@ function updateCoinDisplay() {
 function updateRouletteLeverState() {
   rouletteLever.disabled = rouletteSpinning ||
     rouletteRewardChoiceCount > 0 ||
-    coins < ROULETTE_SPIN_COST;
+    (!infiniteCoins && coins < ROULETTE_SPIN_COST);
 }
 
 function renderRouletteSymbol(reel, symbol, index) {
@@ -977,12 +983,14 @@ async function spinRoulette() {
   if (rouletteSpinning || rouletteRewardChoiceCount > 0) {
     return;
   }
-  if (coins < ROULETTE_SPIN_COST) {
+  if (!infiniteCoins && coins < ROULETTE_SPIN_COST) {
     rouletteStatus.textContent = "You need 200 coins to pull the lever.";
     return;
   }
 
-  coins -= ROULETTE_SPIN_COST;
+  if (!infiniteCoins) {
+    coins -= ROULETTE_SPIN_COST;
+  }
   rouletteSpinning = true;
   rouletteRewardPicker.hidden = true;
   rouletteLever.classList.add("pulled");
@@ -1103,12 +1111,14 @@ function sellCosmeticDuplicates(category, id) {
 }
 
 function openChest(chest, result, purchaseButton) {
-  if (coins < chest.price) {
+  if (!infiniteCoins && coins < chest.price) {
     result.textContent = `You need ${chest.price} coins to buy this chest.`;
     return;
   }
 
-  coins -= chest.price;
+  if (!infiniteCoins) {
+    coins -= chest.price;
+  }
   const roll = Math.random() * 100;
   const commonLimit = chest.odds.common;
   const rareLimit = commonLimit + chest.odds.rare;
@@ -1708,6 +1718,20 @@ function bindMenuControls() {
   rouletteLever.addEventListener("click", spinRoulette);
   claimRouletteRewardButton.addEventListener("click", claimRouletteReward);
   closeCheatMenuButton.addEventListener("click", closeCheatMenu);
+  infiniteCoinsControl.addEventListener("change", function () {
+    infiniteCoins = infiniteCoinsControl.checked;
+    updateCoinDisplay();
+    saveProgress();
+    cheatStatus.textContent = infiniteCoins ? "Infinite coins enabled." : "Infinite coins disabled.";
+  });
+  zeroCoinsButton.addEventListener("click", function () {
+    coins = 0;
+    infiniteCoins = false;
+    infiniteCoinsControl.checked = false;
+    updateCoinDisplay();
+    saveProgress();
+    cheatStatus.textContent = "Coin balance set to zero.";
+  });
   infiniteLivesControl.addEventListener("change", function () {
     infiniteLives = infiniteLivesControl.checked;
     if (infiniteLives) {
@@ -1823,6 +1847,7 @@ function unlockAllCosmetics() {
 
 function start() {
   loadProgress();
+  infiniteCoinsControl.checked = infiniteCoins;
   loadMobileControlsSetting();
   populateWallpaperOptions();
   populateSkinOptions();
