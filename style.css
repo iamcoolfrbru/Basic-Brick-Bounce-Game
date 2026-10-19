@@ -597,8 +597,8 @@ button:focus-visible {
     transform: translateY(-1vh) scale(0.86) rotateY(560deg) rotateZ(8deg);
   }
   76% {
-    animation-timing-function: cubic-bezier(0.3, 0.05, 0.2, 1);
-    transform: translateY(1vh) scale(1.04) rotateY(690deg) rotateZ(-3deg);
+    animation-timing-function: linear;
+    transform: translateY(1vh) scale(1.04) rotateY(620deg) rotateZ(-3deg);
   }
   100% {
     opacity: 1;
