@@ -745,6 +745,23 @@ button:focus-visible {
   opacity: 0.5;
 }
 
+.roulette-auto-spin {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  margin: 10px auto 0;
+  color: #ffe6a3;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.roulette-auto-spin input {
+  width: 16px;
+  height: 16px;
+  accent-color: #e7b94f;
+}
+
 .lever-track {
   position: relative;
   width: 14px;

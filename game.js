@@ -52,6 +52,7 @@ const moveLeftButton = document.getElementById("moveLeftButton");
 const moveRightButton = document.getElementById("moveRightButton");
 const launchButton = document.getElementById("launchButton");
 const rouletteLever = document.getElementById("rouletteLever");
+const rouletteAutoSpinControl = document.getElementById("rouletteAutoSpinControl");
 const rouletteReels = Array.from(document.querySelectorAll(".roulette-reel"));
 const rouletteRewardPicker = document.getElementById("rouletteRewardPicker");
 const rouletteRewardPrompt = document.getElementById("rouletteRewardPrompt");
@@ -984,6 +985,7 @@ async function spinRoulette() {
     return;
   }
   if (!infiniteCoins && coins < ROULETTE_SPIN_COST) {
+    rouletteAutoSpinControl.checked = false;
     rouletteStatus.textContent = "You need 200 coins to pull the lever.";
     return;
   }
@@ -1021,6 +1023,7 @@ async function spinRoulette() {
       rouletteStatus.textContent = "Jackpot! You won 500 coins.";
     }
   } else if (result.every((symbol) => symbol.id === "seven")) {
+    rouletteAutoSpinControl.checked = false;
     rouletteStatus.textContent = "Triple sevens! Pick 3 different skins for free.";
     showRouletteRewardPicker(3, "Choose three different skins to add to your collection:");
   } else if (result.every((symbol) => symbol.id === "clover")) {
@@ -1034,6 +1037,7 @@ async function spinRoulette() {
     saveProgress();
     rouletteStatus.textContent = `Color-wheel jackpot! You won an epic ${getCosmeticName(reward.category, reward.id)}.`;
   } else if (result.every((symbol) => symbol.id === "rose")) {
+    rouletteAutoSpinControl.checked = false;
     rouletteStatus.textContent = "Three roses! Pick one skin for free.";
     showRouletteRewardPicker(1, "Choose one skin to add to your collection:");
   } else {
@@ -1041,6 +1045,19 @@ async function spinRoulette() {
   }
 
   updateRouletteLeverState();
+
+  if (rouletteAutoSpinControl.checked && rouletteRewardChoiceCount === 0) {
+    if (!infiniteCoins && coins < ROULETTE_SPIN_COST) {
+      rouletteAutoSpinControl.checked = false;
+      rouletteStatus.textContent += " Auto spin stopped: you need 200 coins for another spin.";
+    } else {
+      window.setTimeout(() => {
+        if (rouletteAutoSpinControl.checked) {
+          spinRoulette();
+        }
+      }, 350);
+    }
+  }
 }
 
 function populateChestOptions() {
@@ -1716,6 +1733,11 @@ function bindMenuControls() {
     }
   });
   rouletteLever.addEventListener("click", spinRoulette);
+  rouletteAutoSpinControl.addEventListener("change", () => {
+    if (rouletteAutoSpinControl.checked) {
+      spinRoulette();
+    }
+  });
   claimRouletteRewardButton.addEventListener("click", claimRouletteReward);
   closeCheatMenuButton.addEventListener("click", closeCheatMenu);
   infiniteCoinsControl.addEventListener("change", function () {
