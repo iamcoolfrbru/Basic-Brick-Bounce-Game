@@ -534,6 +534,10 @@ button:focus-visible {
   animation: chest-card-reveal 1.2s cubic-bezier(0.16, 0.78, 0.23, 1) both;
 }
 
+.chest-reveal-card.spinning {
+  animation: chest-card-spin 2.4s linear infinite;
+}
+
 .chest-reveal-close {
   position: absolute;
   top: 10px;
@@ -603,6 +607,15 @@ button:focus-visible {
   100% {
     opacity: 1;
     transform: translateY(0) scale(1) rotateY(720deg) rotateZ(0);
+  }
+}
+
+@keyframes chest-card-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
   }
 }
 

@@ -665,9 +665,11 @@ function renderChestRewardCard(tier) {
   drawChestRewardPreview(reward);
 
   chestRevealCard.classList.remove("revealing");
+  chestRevealCard.classList.remove("spinning");
   chestRevealCard.onanimationend = (event) => {
     if (event.target === chestRevealCard) {
       chestRevealCard.onanimationend = null;
+      chestRevealCard.classList.add("spinning");
       nextChestRewardButton.disabled = false;
     }
   };
@@ -691,6 +693,7 @@ function closeChestRewardReveal() {
 
   chestRevealOverlay.hidden = true;
   chestRevealCard.classList.remove("revealing");
+  chestRevealCard.classList.remove("spinning");
   chestRevealCard.onanimationend = null;
   chestRevealRewards = [];
   chestRevealIndex = 0;
@@ -980,6 +983,19 @@ function claimRouletteReward() {
   rouletteStatus.textContent = `Free ${names.length === 1 ? "skin" : "skins"} claimed: ${names.join(", ")}.`;
 }
 
+function claimRandomRouletteRewards() {
+  const availableValues = Array.from(rouletteRewardChoices[0].options)
+    .map((option) => option.value)
+    .filter(Boolean);
+
+  for (const select of rouletteRewardChoices.slice(0, rouletteRewardChoiceCount)) {
+    const randomIndex = Math.floor(Math.random() * availableValues.length);
+    select.value = availableValues.splice(randomIndex, 1)[0];
+  }
+
+  claimRouletteReward();
+}
+
 async function spinRoulette() {
   if (rouletteSpinning || rouletteRewardChoiceCount > 0) {
     return;
@@ -1023,7 +1039,6 @@ async function spinRoulette() {
       rouletteStatus.textContent = "Jackpot! You won 500 coins.";
     }
   } else if (result.every((symbol) => symbol.id === "seven")) {
-    rouletteAutoSpinControl.checked = false;
     rouletteStatus.textContent = "Triple sevens! Pick 3 different skins for free.";
     showRouletteRewardPicker(3, "Choose three different skins to add to your collection:");
   } else if (result.every((symbol) => symbol.id === "clover")) {
@@ -1037,7 +1052,6 @@ async function spinRoulette() {
     saveProgress();
     rouletteStatus.textContent = `Color-wheel jackpot! You won an epic ${getCosmeticName(reward.category, reward.id)}.`;
   } else if (result.every((symbol) => symbol.id === "rose")) {
-    rouletteAutoSpinControl.checked = false;
     rouletteStatus.textContent = "Three roses! Pick one skin for free.";
     showRouletteRewardPicker(1, "Choose one skin to add to your collection:");
   } else {
@@ -1045,6 +1059,10 @@ async function spinRoulette() {
   }
 
   updateRouletteLeverState();
+
+  if (rouletteAutoSpinControl.checked && rouletteRewardChoiceCount > 0) {
+    claimRandomRouletteRewards();
+  }
 
   if (rouletteAutoSpinControl.checked && rouletteRewardChoiceCount === 0) {
     if (!infiniteCoins && coins < ROULETTE_SPIN_COST) {
