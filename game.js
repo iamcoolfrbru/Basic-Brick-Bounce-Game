@@ -981,19 +981,25 @@ function claimRouletteReward() {
   updateRouletteLeverState();
   saveProgress();
   rouletteStatus.textContent = `Free ${names.length === 1 ? "skin" : "skins"} claimed: ${names.join(", ")}.`;
+  continueRouletteAutoSpin();
 }
 
-function claimRandomRouletteRewards() {
-  const availableValues = Array.from(rouletteRewardChoices[0].options)
-    .map((option) => option.value)
-    .filter(Boolean);
-
-  for (const select of rouletteRewardChoices.slice(0, rouletteRewardChoiceCount)) {
-    const randomIndex = Math.floor(Math.random() * availableValues.length);
-    select.value = availableValues.splice(randomIndex, 1)[0];
+function continueRouletteAutoSpin() {
+  if (!rouletteAutoSpinControl.checked || rouletteSpinning || rouletteRewardChoiceCount > 0) {
+    return;
   }
 
-  claimRouletteReward();
+  if (!infiniteCoins && coins < ROULETTE_SPIN_COST) {
+    rouletteAutoSpinControl.checked = false;
+    rouletteStatus.textContent += " Auto spin stopped: you need 200 coins for another spin.";
+    return;
+  }
+
+  window.setTimeout(() => {
+    if (rouletteAutoSpinControl.checked && rouletteRewardChoiceCount === 0) {
+      spinRoulette();
+    }
+  }, 350);
 }
 
 async function spinRoulette() {
@@ -1059,23 +1065,7 @@ async function spinRoulette() {
   }
 
   updateRouletteLeverState();
-
-  if (rouletteAutoSpinControl.checked && rouletteRewardChoiceCount > 0) {
-    claimRandomRouletteRewards();
-  }
-
-  if (rouletteAutoSpinControl.checked && rouletteRewardChoiceCount === 0) {
-    if (!infiniteCoins && coins < ROULETTE_SPIN_COST) {
-      rouletteAutoSpinControl.checked = false;
-      rouletteStatus.textContent += " Auto spin stopped: you need 200 coins for another spin.";
-    } else {
-      window.setTimeout(() => {
-        if (rouletteAutoSpinControl.checked) {
-          spinRoulette();
-        }
-      }, 350);
-    }
-  }
+  continueRouletteAutoSpin();
 }
 
 function populateChestOptions() {
