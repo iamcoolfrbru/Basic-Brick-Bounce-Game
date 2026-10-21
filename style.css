@@ -301,6 +301,50 @@ button:focus-visible {
   display: none !important;
 }
 
+.music-player {
+  margin-bottom: 20px;
+  padding: 0 0 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: left;
+}
+
+.music-player h2 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.music-player-track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  align-items: center;
+  gap: 12px;
+}
+
+.music-player-track strong {
+  font-size: 0.9rem;
+}
+
+.music-player-track p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+}
+
+.music-player-track .primary-button {
+  padding: 9px 10px;
+  font-size: 0.8rem;
+}
+
+.music-volume-row {
+  margin: 14px 0 0;
+}
+
+.music-volume-row span {
+  grid-column: 1 / -1;
+}
+
 .pause-button {
   position: absolute;
   top: 34px;

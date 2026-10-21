@@ -68,9 +68,18 @@ const mobileControlsControl = document.getElementById("mobileControlsControl");
 const ballSpeedValue = document.getElementById("ballSpeedValue");
 const paddleLengthValue = document.getElementById("paddleLengthValue");
 const paddleSpeedValue = document.getElementById("paddleSpeedValue");
+const musicToggleButton = document.getElementById("musicToggleButton");
+const musicVolumeControl = document.getElementById("musicVolumeControl");
+const musicVolumeValue = document.getElementById("musicVolumeValue");
+const musicPlayerStatus = document.getElementById("musicPlayerStatus");
 const backgroundStars = [];
 const blackHoleImage = new Image();
 let blackHoleImageLoaded = false;
+let musicContext = null;
+let musicMasterGain = null;
+let musicInterval = null;
+let musicStep = 0;
+let musicPlaying = false;
 let lives = MAX_LIVES;
 let gameRunning = false;
 let gamePaused = false;
@@ -1728,6 +1737,73 @@ function populateWallpaperOptions() {
   wallpaperSelect.value = settings.wallpaper;
 }
 
+function playMusicNote(frequency, duration, waveform, volume) {
+  const oscillator = musicContext.createOscillator();
+  const noteGain = musicContext.createGain();
+  const startTime = musicContext.currentTime;
+
+  oscillator.type = waveform;
+  oscillator.frequency.setValueAtTime(frequency, startTime);
+  noteGain.gain.setValueAtTime(0.001, startTime);
+  noteGain.gain.linearRampToValueAtTime(volume, startTime + 0.015);
+  noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+  oscillator.connect(noteGain);
+  noteGain.connect(musicMasterGain);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration);
+}
+
+function playMusicStep() {
+  const melody = [523.25, 659.25, 784, 659.25, 587.33, 698.46, 880, 698.46,
+    523.25, 659.25, 784, 1046.5, 987.77, 880, 784, 659.25];
+  const bass = [130.81, 196, 174.61, 220];
+
+  playMusicNote(melody[musicStep % melody.length], 0.19, "square", 0.12);
+  if (musicStep % 4 === 0) {
+    playMusicNote(bass[Math.floor(musicStep / 4) % bass.length], 0.62, "triangle", 0.2);
+  }
+  musicStep++;
+}
+
+async function toggleMusicPlayback() {
+  if (musicPlaying) {
+    musicPlaying = false;
+    window.clearInterval(musicInterval);
+    musicInterval = null;
+    musicPlayerStatus.textContent = "8-bit game loop · Paused";
+    musicToggleButton.textContent = "Play";
+    musicToggleButton.setAttribute("aria-pressed", "false");
+    await musicContext.suspend();
+    return;
+  }
+
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) {
+    musicPlayerStatus.textContent = "Audio playback is not supported in this browser.";
+    return;
+  }
+
+  try {
+    if (!musicContext) {
+      musicContext = new AudioContext();
+      musicMasterGain = musicContext.createGain();
+      musicMasterGain.gain.value = Number(musicVolumeControl.value) / 100;
+      musicMasterGain.connect(musicContext.destination);
+    }
+
+    await musicContext.resume();
+    musicPlaying = true;
+    musicPlayerStatus.textContent = "8-bit game loop · Playing";
+    musicToggleButton.textContent = "Pause";
+    musicToggleButton.setAttribute("aria-pressed", "true");
+    playMusicStep();
+    musicInterval = window.setInterval(playMusicStep, 240);
+  } catch (error) {
+    musicPlayerStatus.textContent = "Unable to start audio playback.";
+    console.error("Unable to start music playback.", error);
+  }
+}
+
 function bindMenuControls() {
   startButton.addEventListener("click", startGame);
   pauseButton.addEventListener("click", pauseGame);
@@ -1810,6 +1886,15 @@ function bindMenuControls() {
       localStorage.setItem(MOBILE_CONTROLS_STORAGE_KEY, String(mobileControlsEnabled));
     } catch (error) {
       console.error("Unable to save the mobile controls setting.", error);
+    }
+  });
+
+  musicToggleButton.addEventListener("click", toggleMusicPlayback);
+  musicVolumeControl.addEventListener("input", function () {
+    const volume = Number(musicVolumeControl.value);
+    musicVolumeValue.textContent = `${volume}%`;
+    if (musicMasterGain) {
+      musicMasterGain.gain.setTargetAtTime(volume / 100, musicContext.currentTime, 0.03);
     }
   });
 }

@@ -51,6 +51,22 @@
           </div>
 
           <div id="settingsTab" class="tab-panel">
+            <section class="music-player" aria-labelledby="musicPlayerTitle">
+              <h2 id="musicPlayerTitle">Music</h2>
+              <div class="music-player-track">
+                <div>
+                  <strong>Orbit Run</strong>
+                  <p id="musicPlayerStatus" role="status" aria-live="polite">8-bit game loop · Paused</p>
+                </div>
+                <button id="musicToggleButton" class="primary-button" type="button" aria-pressed="false">Play</button>
+              </div>
+              <label class="setting-row music-volume-row">
+                <span>Volume</span>
+                <input id="musicVolumeControl" type="range" min="0" max="100" step="1" value="35">
+                <strong id="musicVolumeValue">35%</strong>
+              </label>
+            </section>
+
             <label class="mobile-controls-setting">
               <input id="mobileControlsControl" type="checkbox">
               <span>Show mobile controls</span>
