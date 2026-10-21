@@ -74,6 +74,7 @@ const musicVolumeValue = document.getElementById("musicVolumeValue");
 const musicPlayerStatus = document.getElementById("musicPlayerStatus");
 const musicTrackName = document.getElementById("musicTrackName");
 const musicFileControl = document.getElementById("musicFileControl");
+const builtInMusicSelect = document.getElementById("builtInMusicSelect");
 const useBuiltInMusicButton = document.getElementById("useBuiltInMusicButton");
 const customMusicAudio = document.getElementById("customMusicAudio");
 const backgroundStars = [];
@@ -1799,8 +1800,28 @@ function importMusicFile(file) {
   importedMusicUrl = URL.createObjectURL(file);
   customMusicAudio.src = importedMusicUrl;
   customMusicAudio.volume = Number(musicVolumeControl.value) / 100;
+  builtInMusicSelect.value = "";
   musicTrackName.textContent = file.name;
   musicPlayerStatus.textContent = "Custom track · Paused";
+  musicFileControl.value = "";
+  useBuiltInMusicButton.classList.remove("hidden");
+}
+
+function selectBuiltInMusic() {
+  const selectedOption = builtInMusicSelect.selectedOptions[0];
+  if (!builtInMusicSelect.value || !selectedOption) {
+    return;
+  }
+
+  stopMusicPlayback();
+  if (importedMusicUrl) {
+    URL.revokeObjectURL(importedMusicUrl);
+    importedMusicUrl = null;
+  }
+  customMusicAudio.src = builtInMusicSelect.value;
+  customMusicAudio.load();
+  musicTrackName.textContent = selectedOption.textContent;
+  musicPlayerStatus.textContent = "Game soundtrack · Paused";
   musicFileControl.value = "";
   useBuiltInMusicButton.classList.remove("hidden");
 }
@@ -1813,6 +1834,7 @@ function useBuiltInMusic() {
   }
   customMusicAudio.removeAttribute("src");
   customMusicAudio.load();
+  builtInMusicSelect.value = "";
   musicTrackName.textContent = "Orbit Run";
   musicPlayerStatus.textContent = "8-bit game loop · Paused";
   musicFileControl.value = "";
@@ -1824,9 +1846,9 @@ async function toggleMusicPlayback() {
     musicPlaying = false;
     window.clearInterval(musicInterval);
     musicInterval = null;
-    if (importedMusicUrl) {
+    if (customMusicAudio.hasAttribute("src")) {
       customMusicAudio.pause();
-      musicPlayerStatus.textContent = "Custom track · Paused";
+      musicPlayerStatus.textContent = importedMusicUrl ? "Custom track · Paused" : "Game soundtrack · Paused";
     } else {
       musicPlayerStatus.textContent = "8-bit game loop · Paused";
       await musicContext.suspend();
@@ -1836,12 +1858,12 @@ async function toggleMusicPlayback() {
     return;
   }
 
-  if (importedMusicUrl) {
+  if (customMusicAudio.hasAttribute("src")) {
     try {
       customMusicAudio.volume = Number(musicVolumeControl.value) / 100;
       await customMusicAudio.play();
       musicPlaying = true;
-      musicPlayerStatus.textContent = "Custom track · Playing";
+      musicPlayerStatus.textContent = importedMusicUrl ? "Custom track · Playing" : "Game soundtrack · Playing";
       musicToggleButton.textContent = "Pause";
       musicToggleButton.setAttribute("aria-pressed", "true");
     } catch (error) {
@@ -1965,15 +1987,16 @@ function bindMenuControls() {
 
   musicToggleButton.addEventListener("click", toggleMusicPlayback);
   musicFileControl.addEventListener("change", () => importMusicFile(musicFileControl.files[0]));
+  builtInMusicSelect.addEventListener("change", selectBuiltInMusic);
   useBuiltInMusicButton.addEventListener("click", useBuiltInMusic);
   customMusicAudio.addEventListener("ended", () => {
     musicPlaying = false;
-    musicPlayerStatus.textContent = "Custom track · Finished";
+    musicPlayerStatus.textContent = importedMusicUrl ? "Custom track · Finished" : "Game soundtrack · Finished";
     musicToggleButton.textContent = "Play";
     musicToggleButton.setAttribute("aria-pressed", "false");
   });
   customMusicAudio.addEventListener("error", () => {
-    if (importedMusicUrl) {
+    if (customMusicAudio.hasAttribute("src")) {
       musicPlayerStatus.textContent = "Unable to load this file in your browser.";
       musicPlaying = false;
       musicToggleButton.textContent = "Play";
