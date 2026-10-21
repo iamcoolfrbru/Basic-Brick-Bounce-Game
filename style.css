@@ -322,6 +322,11 @@ button:focus-visible {
   gap: 12px;
 }
 
+.music-player-track > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .music-player-track strong {
   font-size: 0.9rem;
 }
@@ -335,6 +340,41 @@ button:focus-visible {
 .music-player-track .primary-button {
   padding: 9px 10px;
   font-size: 0.8rem;
+}
+
+.music-import-row {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 0.8rem;
+}
+
+.music-import-row input {
+  width: 100%;
+  color: rgba(255, 255, 255, 0.8);
+  font: inherit;
+}
+
+.music-import-row input::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.music-reset-button {
+  margin-top: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #8be9fd;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  text-decoration: underline;
 }
 
 .music-volume-row {

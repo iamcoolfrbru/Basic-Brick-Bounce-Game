@@ -55,16 +55,22 @@
               <h2 id="musicPlayerTitle">Music</h2>
               <div class="music-player-track">
                 <div>
-                  <strong>Orbit Run</strong>
+                  <strong id="musicTrackName">Orbit Run</strong>
                   <p id="musicPlayerStatus" role="status" aria-live="polite">8-bit game loop · Paused</p>
                 </div>
                 <button id="musicToggleButton" class="primary-button" type="button" aria-pressed="false">Play</button>
               </div>
+              <label class="music-import-row">
+                <span>Import an MP3 or MP4 file</span>
+                <input id="musicFileControl" type="file" accept=".mp3,.mp4,audio/mpeg,audio/mp4,video/mp4">
+              </label>
+              <button id="useBuiltInMusicButton" class="music-reset-button hidden" type="button">Use built-in loop</button>
               <label class="setting-row music-volume-row">
                 <span>Volume</span>
                 <input id="musicVolumeControl" type="range" min="0" max="100" step="1" value="35">
                 <strong id="musicVolumeValue">35%</strong>
               </label>
+              <audio id="customMusicAudio" preload="metadata" hidden></audio>
             </section>
 
             <label class="mobile-controls-setting">

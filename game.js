@@ -72,6 +72,10 @@ const musicToggleButton = document.getElementById("musicToggleButton");
 const musicVolumeControl = document.getElementById("musicVolumeControl");
 const musicVolumeValue = document.getElementById("musicVolumeValue");
 const musicPlayerStatus = document.getElementById("musicPlayerStatus");
+const musicTrackName = document.getElementById("musicTrackName");
+const musicFileControl = document.getElementById("musicFileControl");
+const useBuiltInMusicButton = document.getElementById("useBuiltInMusicButton");
+const customMusicAudio = document.getElementById("customMusicAudio");
 const backgroundStars = [];
 const blackHoleImage = new Image();
 let blackHoleImageLoaded = false;
@@ -80,6 +84,7 @@ let musicMasterGain = null;
 let musicInterval = null;
 let musicStep = 0;
 let musicPlaying = false;
+let importedMusicUrl = null;
 let lives = MAX_LIVES;
 let gameRunning = false;
 let gamePaused = false;
@@ -1765,15 +1770,84 @@ function playMusicStep() {
   musicStep++;
 }
 
+function stopMusicPlayback() {
+  musicPlaying = false;
+  window.clearInterval(musicInterval);
+  musicInterval = null;
+  customMusicAudio.pause();
+  if (musicContext && musicContext.state === "running") {
+    musicContext.suspend();
+  }
+  musicToggleButton.textContent = "Play";
+  musicToggleButton.setAttribute("aria-pressed", "false");
+}
+
+function importMusicFile(file) {
+  if (!file) {
+    return;
+  }
+  if (!/\.(mp3|mp4)$/i.test(file.name)) {
+    musicPlayerStatus.textContent = "Choose an MP3 or MP4 file.";
+    musicFileControl.value = "";
+    return;
+  }
+
+  stopMusicPlayback();
+  if (importedMusicUrl) {
+    URL.revokeObjectURL(importedMusicUrl);
+  }
+  importedMusicUrl = URL.createObjectURL(file);
+  customMusicAudio.src = importedMusicUrl;
+  customMusicAudio.volume = Number(musicVolumeControl.value) / 100;
+  musicTrackName.textContent = file.name;
+  musicPlayerStatus.textContent = "Custom track · Paused";
+  musicFileControl.value = "";
+  useBuiltInMusicButton.classList.remove("hidden");
+}
+
+function useBuiltInMusic() {
+  stopMusicPlayback();
+  if (importedMusicUrl) {
+    URL.revokeObjectURL(importedMusicUrl);
+    importedMusicUrl = null;
+  }
+  customMusicAudio.removeAttribute("src");
+  customMusicAudio.load();
+  musicTrackName.textContent = "Orbit Run";
+  musicPlayerStatus.textContent = "8-bit game loop · Paused";
+  musicFileControl.value = "";
+  useBuiltInMusicButton.classList.add("hidden");
+}
+
 async function toggleMusicPlayback() {
   if (musicPlaying) {
     musicPlaying = false;
     window.clearInterval(musicInterval);
     musicInterval = null;
-    musicPlayerStatus.textContent = "8-bit game loop · Paused";
+    if (importedMusicUrl) {
+      customMusicAudio.pause();
+      musicPlayerStatus.textContent = "Custom track · Paused";
+    } else {
+      musicPlayerStatus.textContent = "8-bit game loop · Paused";
+      await musicContext.suspend();
+    }
     musicToggleButton.textContent = "Play";
     musicToggleButton.setAttribute("aria-pressed", "false");
-    await musicContext.suspend();
+    return;
+  }
+
+  if (importedMusicUrl) {
+    try {
+      customMusicAudio.volume = Number(musicVolumeControl.value) / 100;
+      await customMusicAudio.play();
+      musicPlaying = true;
+      musicPlayerStatus.textContent = "Custom track · Playing";
+      musicToggleButton.textContent = "Pause";
+      musicToggleButton.setAttribute("aria-pressed", "true");
+    } catch (error) {
+      musicPlayerStatus.textContent = "Unable to play this file in your browser.";
+      console.error("Unable to play imported music.", error);
+    }
     return;
   }
 
@@ -1890,9 +1964,26 @@ function bindMenuControls() {
   });
 
   musicToggleButton.addEventListener("click", toggleMusicPlayback);
+  musicFileControl.addEventListener("change", () => importMusicFile(musicFileControl.files[0]));
+  useBuiltInMusicButton.addEventListener("click", useBuiltInMusic);
+  customMusicAudio.addEventListener("ended", () => {
+    musicPlaying = false;
+    musicPlayerStatus.textContent = "Custom track · Finished";
+    musicToggleButton.textContent = "Play";
+    musicToggleButton.setAttribute("aria-pressed", "false");
+  });
+  customMusicAudio.addEventListener("error", () => {
+    if (importedMusicUrl) {
+      musicPlayerStatus.textContent = "Unable to load this file in your browser.";
+      musicPlaying = false;
+      musicToggleButton.textContent = "Play";
+      musicToggleButton.setAttribute("aria-pressed", "false");
+    }
+  });
   musicVolumeControl.addEventListener("input", function () {
     const volume = Number(musicVolumeControl.value);
     musicVolumeValue.textContent = `${volume}%`;
+    customMusicAudio.volume = volume / 100;
     if (musicMasterGain) {
       musicMasterGain.gain.setTargetAtTime(volume / 100, musicContext.currentTime, 0.03);
     }
