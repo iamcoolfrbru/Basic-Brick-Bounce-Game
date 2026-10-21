@@ -303,23 +303,62 @@ button:focus-visible {
 
 .music-player {
   margin-bottom: 20px;
-  padding: 0 0 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 14px;
+  border: 1px solid rgba(139, 233, 253, 0.36);
+  border-radius: 8px;
+  background:
+    linear-gradient(125deg, rgba(139, 233, 253, 0.09), transparent 56%),
+    rgba(5, 12, 20, 0.84);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.22);
   text-align: left;
 }
 
 .music-player h2 {
-  margin: 0 0 10px;
-  font-size: 0.9rem;
-  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: #8be9fd;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.music-player h2::before {
+  width: 14px;
+  height: 12px;
+  content: "";
+  background: linear-gradient(to top, #8be9fd 0 35%, transparent 35%) 0 100% / 3px 100% no-repeat,
+    linear-gradient(to top, #8be9fd 0 75%, transparent 75%) 5px 100% / 3px 100% no-repeat,
+    linear-gradient(to top, #f4d77a 0 52%, transparent 52%) 10px 100% / 3px 100% no-repeat;
 }
 
 .music-player-track {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px;
+  grid-template-columns: 40px minmax(0, 1fr) 88px;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-height: 68px;
+  margin-bottom: 16px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.music-player-track::before {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgba(139, 233, 253, 0.32);
+  border-radius: 5px;
+  background: linear-gradient(145deg, rgba(139, 233, 253, 0.2), rgba(244, 215, 122, 0.08));
+  color: #f4d77a;
+  content: "♫";
+  font-family: Georgia, serif;
+  font-size: 1.5rem;
 }
 
 .music-player-track > div {
@@ -335,32 +374,81 @@ button:focus-visible {
   margin: 4px 0 0;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 .music-player-track .primary-button {
-  padding: 9px 10px;
-  font-size: 0.8rem;
+  min-height: 38px;
+  padding: 8px 6px;
+  border-color: rgba(139, 233, 253, 0.7);
+  background: rgba(139, 233, 253, 0.12);
+  color: #b8f4ff;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.music-player-track .primary-button:hover {
+  background: rgba(139, 233, 253, 0.22);
+}
+
+.music-import-row + .music-import-row {
+  margin-top: 12px;
 }
 
 .music-import-row {
   display: grid;
   gap: 8px;
-  margin-top: 14px;
-  font-size: 0.8rem;
+  margin-top: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.music-import-row select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 34px 8px 10px;
+  appearance: none;
+  border: 1px solid rgba(139, 233, 253, 0.36);
+  border-radius: 4px;
+  background: linear-gradient(45deg, transparent 50%, #8be9fd 50%) calc(100% - 16px) 17px / 6px 6px no-repeat,
+    linear-gradient(135deg, #8be9fd 50%, transparent 50%) calc(100% - 12px) 17px / 6px 6px no-repeat,
+    #080d14;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.music-import-row select:focus-visible,
+.music-import-row input:focus-visible {
+  outline: 2px solid #8be9fd;
+  outline-offset: 2px;
+}
+
+.music-import-row select option {
+  background: #080d14;
+  color: #fff;
 }
 
 .music-import-row input {
   width: 100%;
-  color: rgba(255, 255, 255, 0.8);
+  min-height: 40px;
+  padding: 5px;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.72);
   font: inherit;
+  font-size: 0.7rem;
 }
 
 .music-import-row input::file-selector-button {
   margin-right: 10px;
-  padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  padding: 7px 9px;
+  border: 1px solid rgba(139, 233, 253, 0.42);
+  border-radius: 3px;
+  background: rgba(139, 233, 253, 0.1);
+  color: #b8f4ff;
   cursor: pointer;
   font: inherit;
 }
@@ -379,10 +467,22 @@ button:focus-visible {
 
 .music-volume-row {
   margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .music-volume-row span {
   grid-column: 1 / -1;
+}
+
+.music-volume-row input[type="range"] {
+  accent-color: #8be9fd;
+}
+
+.music-volume-row strong {
+  min-width: 42px;
+  color: #f4d77a;
+  font-size: 0.78rem;
 }
 
 .pause-button {
