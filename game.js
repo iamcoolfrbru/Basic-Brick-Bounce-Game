@@ -73,6 +73,9 @@ const musicVolumeControl = document.getElementById("musicVolumeControl");
 const musicVolumeValue = document.getElementById("musicVolumeValue");
 const musicPlayerStatus = document.getElementById("musicPlayerStatus");
 const musicTrackName = document.getElementById("musicTrackName");
+const musicProgressControl = document.getElementById("musicProgressControl");
+const musicElapsedTime = document.getElementById("musicElapsedTime");
+const musicDurationTime = document.getElementById("musicDurationTime");
 const musicFileControl = document.getElementById("musicFileControl");
 const builtInMusicSelect = document.getElementById("builtInMusicSelect");
 const useBuiltInMusicButton = document.getElementById("useBuiltInMusicButton");
@@ -84,6 +87,8 @@ let musicContext = null;
 let musicMasterGain = null;
 let musicInterval = null;
 let musicStep = 0;
+const MUSIC_STEP_SECONDS = 0.24;
+const GENERATED_MUSIC_STEPS = 16;
 let musicPlaying = false;
 let importedMusicUrl = null;
 let lives = MAX_LIVES;
@@ -1771,11 +1776,43 @@ function playMusicStep() {
   musicStep++;
 }
 
+function formatMusicTime(time) {
+  if (!Number.isFinite(time) || time < 0) {
+    return "--:--";
+  }
+
+  const totalSeconds = Math.round(time);
+  return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
+}
+
+function updateMusicProgress() {
+  const hasAudioSource = customMusicAudio.hasAttribute("src");
+  const duration = hasAudioSource
+    ? customMusicAudio.duration
+    : MUSIC_STEP_SECONDS * GENERATED_MUSIC_STEPS;
+  const currentTime = hasAudioSource
+    ? customMusicAudio.currentTime
+    : (musicStep % GENERATED_MUSIC_STEPS) * MUSIC_STEP_SECONDS;
+  const hasDuration = Number.isFinite(duration) && duration > 0;
+
+  musicProgressControl.disabled = !hasDuration;
+  musicProgressControl.value = hasDuration
+    ? String(Math.round((currentTime / duration) * Number(musicProgressControl.max)))
+    : "0";
+  musicElapsedTime.textContent = formatMusicTime(currentTime);
+  musicDurationTime.textContent = formatMusicTime(duration);
+  musicProgressControl.setAttribute(
+    "aria-valuetext",
+    `${formatMusicTime(currentTime)} of ${formatMusicTime(duration)}`
+  );
+}
+
 function stopMusicPlayback() {
   musicPlaying = false;
   window.clearInterval(musicInterval);
   musicInterval = null;
   customMusicAudio.pause();
+  updateMusicProgress();
   if (musicContext && musicContext.state === "running") {
     musicContext.suspend();
   }
@@ -1800,6 +1837,7 @@ function importMusicFile(file) {
   importedMusicUrl = URL.createObjectURL(file);
   customMusicAudio.src = importedMusicUrl;
   customMusicAudio.volume = Number(musicVolumeControl.value) / 100;
+  updateMusicProgress();
   builtInMusicSelect.value = "";
   musicTrackName.textContent = file.name;
   musicPlayerStatus.textContent = "Custom track · Paused";
@@ -1820,6 +1858,7 @@ function selectBuiltInMusic() {
   }
   customMusicAudio.src = builtInMusicSelect.value;
   customMusicAudio.load();
+  updateMusicProgress();
   musicTrackName.textContent = selectedOption.textContent;
   musicPlayerStatus.textContent = "Game soundtrack · Paused";
   musicFileControl.value = "";
@@ -1834,6 +1873,7 @@ function useBuiltInMusic() {
   }
   customMusicAudio.removeAttribute("src");
   customMusicAudio.load();
+  updateMusicProgress();
   builtInMusicSelect.value = "";
   musicTrackName.textContent = "Orbit Run";
   musicPlayerStatus.textContent = "8-bit game loop · Paused";
@@ -1893,7 +1933,10 @@ async function toggleMusicPlayback() {
     musicToggleButton.textContent = "Pause";
     musicToggleButton.setAttribute("aria-pressed", "true");
     playMusicStep();
-    musicInterval = window.setInterval(playMusicStep, 240);
+    musicInterval = window.setInterval(() => {
+      playMusicStep();
+      updateMusicProgress();
+    }, MUSIC_STEP_SECONDS * 1000);
   } catch (error) {
     musicPlayerStatus.textContent = "Unable to start audio playback.";
     console.error("Unable to start music playback.", error);
@@ -1989,8 +2032,23 @@ function bindMenuControls() {
   musicFileControl.addEventListener("change", () => importMusicFile(musicFileControl.files[0]));
   builtInMusicSelect.addEventListener("change", selectBuiltInMusic);
   useBuiltInMusicButton.addEventListener("click", useBuiltInMusic);
+  musicProgressControl.addEventListener("input", () => {
+    const progress = Number(musicProgressControl.value) / Number(musicProgressControl.max);
+    if (customMusicAudio.hasAttribute("src")) {
+      if (Number.isFinite(customMusicAudio.duration)) {
+        customMusicAudio.currentTime = progress * customMusicAudio.duration;
+      }
+    } else {
+      musicStep = Math.round(progress * (GENERATED_MUSIC_STEPS - 1));
+    }
+    updateMusicProgress();
+  });
+  customMusicAudio.addEventListener("loadedmetadata", updateMusicProgress);
+  customMusicAudio.addEventListener("durationchange", updateMusicProgress);
+  customMusicAudio.addEventListener("timeupdate", updateMusicProgress);
   customMusicAudio.addEventListener("ended", () => {
     musicPlaying = false;
+    updateMusicProgress();
     musicPlayerStatus.textContent = importedMusicUrl ? "Custom track · Finished" : "Game soundtrack · Finished";
     musicToggleButton.textContent = "Play";
     musicToggleButton.setAttribute("aria-pressed", "false");
@@ -2001,6 +2059,7 @@ function bindMenuControls() {
       musicPlaying = false;
       musicToggleButton.textContent = "Play";
       musicToggleButton.setAttribute("aria-pressed", "false");
+      updateMusicProgress();
     }
   });
   musicVolumeControl.addEventListener("input", function () {
@@ -2011,6 +2070,7 @@ function bindMenuControls() {
       musicMasterGain.gain.setTargetAtTime(volume / 100, musicContext.currentTime, 0.03);
     }
   });
+  updateMusicProgress();
 }
 
 function loadMobileControlsSetting() {

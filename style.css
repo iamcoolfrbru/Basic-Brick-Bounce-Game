@@ -377,6 +377,37 @@ button:focus-visible {
   line-height: 1.4;
 }
 
+.music-progress {
+  margin: -6px 2px 16px;
+}
+
+.music-progress-times {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.music-progress input[type="range"] {
+  display: block;
+  width: 100%;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: #8be9fd;
+  cursor: pointer;
+}
+
+.music-progress input[type="range"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.music-progress input[type="range"]:focus-visible {
+  outline: 2px solid #8be9fd;
+  outline-offset: 2px;
+}
+
 .music-player-track .primary-button {
   min-height: 38px;
   padding: 8px 6px;

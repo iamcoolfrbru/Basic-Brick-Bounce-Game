@@ -60,6 +60,13 @@
                 </div>
                 <button id="musicToggleButton" class="primary-button" type="button" aria-pressed="false">Play</button>
               </div>
+              <div class="music-progress">
+                <div class="music-progress-times" aria-hidden="true">
+                  <span id="musicElapsedTime">0:00</span>
+                  <span id="musicDurationTime">0:04</span>
+                </div>
+                <input id="musicProgressControl" type="range" min="0" max="1000" step="1" value="0" aria-label="Song position">
+              </div>
               <label class="music-import-row">
                 <span>Game soundtrack</span>
                 <select id="builtInMusicSelect">
