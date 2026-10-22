@@ -398,6 +398,41 @@ button:focus-visible {
   cursor: pointer;
 }
 
+.music-progress-track {
+  position: relative;
+}
+
+.music-progress-effects {
+  position: absolute;
+  inset: 2px 0 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.music-spark {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 7px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #fff, #8be9fd 55%, transparent);
+  box-shadow: 0 0 6px 1px rgba(139, 233, 253, 0.9);
+  animation: music-spark-fly 420ms ease-out forwards;
+}
+
+@keyframes music-spark-fly {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--spark-angle)) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) rotate(var(--spark-angle)) scale(0.2);
+  }
+}
+
 .music-progress input[type="range"]:disabled {
   cursor: not-allowed;
   opacity: 0.45;

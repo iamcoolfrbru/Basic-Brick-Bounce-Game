@@ -65,7 +65,10 @@
                   <span id="musicElapsedTime">0:00</span>
                   <span id="musicDurationTime">0:04</span>
                 </div>
-                <input id="musicProgressControl" type="range" min="0" max="1000" step="1" value="0" aria-label="Song position">
+                <div class="music-progress-track">
+                  <input id="musicProgressControl" type="range" min="0" max="1000" step="1" value="0" aria-label="Song position">
+                  <div id="musicProgressEffects" class="music-progress-effects" aria-hidden="true"></div>
+                </div>
               </div>
               <label class="music-import-row">
                 <span>Game soundtrack</span>

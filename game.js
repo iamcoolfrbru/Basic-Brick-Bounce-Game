@@ -76,6 +76,7 @@ const musicTrackName = document.getElementById("musicTrackName");
 const musicProgressControl = document.getElementById("musicProgressControl");
 const musicElapsedTime = document.getElementById("musicElapsedTime");
 const musicDurationTime = document.getElementById("musicDurationTime");
+const musicProgressEffects = document.getElementById("musicProgressEffects");
 const musicFileControl = document.getElementById("musicFileControl");
 const builtInMusicSelect = document.getElementById("builtInMusicSelect");
 const useBuiltInMusicButton = document.getElementById("useBuiltInMusicButton");
@@ -91,6 +92,7 @@ const MUSIC_STEP_SECONDS = 0.24;
 const GENERATED_MUSIC_STEPS = 16;
 let musicPlaying = false;
 let importedMusicUrl = null;
+let lastMusicSparkTime = 0;
 let lives = MAX_LIVES;
 let gameRunning = false;
 let gamePaused = false;
@@ -1785,6 +1787,28 @@ function formatMusicTime(time) {
   return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
 }
 
+function emitMusicSparks() {
+  const now = performance.now();
+  if (now - lastMusicSparkTime < 45) {
+    return;
+  }
+  lastMusicSparkTime = now;
+
+  const progress = Number(musicProgressControl.value) / Number(musicProgressControl.max);
+  for (let index = 0; index < 3; index++) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 7 + Math.random() * 10;
+    const spark = document.createElement("span");
+    spark.className = "music-spark";
+    spark.style.left = `${progress * 100}%`;
+    spark.style.setProperty("--spark-angle", `${Math.random() * 360}deg`);
+    spark.style.setProperty("--spark-x", `${Math.cos(angle) * distance}px`);
+    spark.style.setProperty("--spark-y", `${Math.sin(angle) * distance}px`);
+    spark.addEventListener("animationend", () => spark.remove(), { once: true });
+    musicProgressEffects.appendChild(spark);
+  }
+}
+
 function updateMusicProgress() {
   const hasAudioSource = customMusicAudio.hasAttribute("src");
   const duration = hasAudioSource
@@ -1805,6 +1829,9 @@ function updateMusicProgress() {
     "aria-valuetext",
     `${formatMusicTime(currentTime)} of ${formatMusicTime(duration)}`
   );
+  if (musicPlaying) {
+    emitMusicSparks();
+  }
 }
 
 function stopMusicPlayback() {
@@ -2042,6 +2069,9 @@ function bindMenuControls() {
       musicStep = Math.round(progress * (GENERATED_MUSIC_STEPS - 1));
     }
     updateMusicProgress();
+    if (!musicPlaying) {
+      emitMusicSparks();
+    }
   });
   customMusicAudio.addEventListener("loadedmetadata", updateMusicProgress);
   customMusicAudio.addEventListener("durationchange", updateMusicProgress);
