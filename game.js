@@ -1775,7 +1775,7 @@ function playMusicStep() {
   if (musicStep % 4 === 0) {
     playMusicNote(bass[Math.floor(musicStep / 4) % bass.length], 0.62, "triangle", 0.2);
   }
-  musicStep++;
+  musicStep += 1;
 }
 
 function formatMusicTime(time) {
@@ -2066,7 +2066,7 @@ function bindMenuControls() {
         customMusicAudio.currentTime = progress * customMusicAudio.duration;
       }
     } else {
-      musicStep = Math.round(progress * (GENERATED_MUSIC_STEPS - 1));
+      musicStep = Math.round(progress * GENERATED_MUSIC_STEPS);
     }
     updateMusicProgress();
     if (!musicPlaying) {
