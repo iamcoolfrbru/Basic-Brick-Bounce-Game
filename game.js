@@ -69,6 +69,7 @@ const ballSpeedValue = document.getElementById("ballSpeedValue");
 const paddleLengthValue = document.getElementById("paddleLengthValue");
 const paddleSpeedValue = document.getElementById("paddleSpeedValue");
 const musicToggleButton = document.getElementById("musicToggleButton");
+const musicLoopButton = document.getElementById("musicLoopButton");
 const musicVolumeControl = document.getElementById("musicVolumeControl");
 const musicVolumeValue = document.getElementById("musicVolumeValue");
 const musicPlayerStatus = document.getElementById("musicPlayerStatus");
@@ -91,6 +92,7 @@ let musicStep = 0;
 const MUSIC_STEP_SECONDS = 0.24;
 const GENERATED_MUSIC_STEPS = 16;
 let musicPlaying = false;
+let musicLoopEnabled = false;
 let importedMusicUrl = null;
 let lastMusicSparkTime = 0;
 let lives = MAX_LIVES;
@@ -1863,6 +1865,7 @@ function importMusicFile(file) {
   }
   importedMusicUrl = URL.createObjectURL(file);
   customMusicAudio.src = importedMusicUrl;
+  customMusicAudio.loop = musicLoopEnabled;
   customMusicAudio.volume = Number(musicVolumeControl.value) / 100;
   updateMusicProgress();
   builtInMusicSelect.value = "";
@@ -1884,6 +1887,7 @@ function selectBuiltInMusic() {
     importedMusicUrl = null;
   }
   customMusicAudio.src = builtInMusicSelect.value;
+  customMusicAudio.loop = musicLoopEnabled;
   customMusicAudio.load();
   updateMusicProgress();
   musicTrackName.textContent = selectedOption.textContent;
@@ -1899,6 +1903,7 @@ function useBuiltInMusic() {
     importedMusicUrl = null;
   }
   customMusicAudio.removeAttribute("src");
+  customMusicAudio.loop = false;
   customMusicAudio.load();
   updateMusicProgress();
   builtInMusicSelect.value = "";
@@ -1906,6 +1911,17 @@ function useBuiltInMusic() {
   musicPlayerStatus.textContent = "8-bit game loop · Paused";
   musicFileControl.value = "";
   useBuiltInMusicButton.classList.add("hidden");
+}
+
+function toggleMusicLoop() {
+  musicLoopEnabled = !musicLoopEnabled;
+  customMusicAudio.loop = musicLoopEnabled && customMusicAudio.hasAttribute("src");
+  musicLoopButton.textContent = musicLoopEnabled ? "Loop: On" : "Loop: Off";
+  musicLoopButton.setAttribute("aria-pressed", String(musicLoopEnabled));
+
+  if (musicLoopEnabled && customMusicAudio.hasAttribute("src") && customMusicAudio.ended) {
+    customMusicAudio.play();
+  }
 }
 
 async function toggleMusicPlayback() {
@@ -1928,6 +1944,7 @@ async function toggleMusicPlayback() {
   if (customMusicAudio.hasAttribute("src")) {
     try {
       customMusicAudio.volume = Number(musicVolumeControl.value) / 100;
+      customMusicAudio.loop = musicLoopEnabled;
       await customMusicAudio.play();
       musicPlaying = true;
       musicPlayerStatus.textContent = importedMusicUrl ? "Custom track · Playing" : "Game soundtrack · Playing";
@@ -2056,6 +2073,7 @@ function bindMenuControls() {
   });
 
   musicToggleButton.addEventListener("click", toggleMusicPlayback);
+  musicLoopButton.addEventListener("click", toggleMusicLoop);
   musicFileControl.addEventListener("change", () => importMusicFile(musicFileControl.files[0]));
   builtInMusicSelect.addEventListener("change", selectBuiltInMusic);
   useBuiltInMusicButton.addEventListener("click", useBuiltInMusic);

@@ -453,6 +453,31 @@ button:focus-visible {
   letter-spacing: 0.04em;
 }
 
+.music-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.music-select-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+}
+
+.music-select-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.music-player-track .primary-button,
+.music-select-row .primary-button {
+  min-width: 110px;
+  white-space: nowrap;
+}
+
 .music-player-track .primary-button:hover {
   background: rgba(139, 233, 253, 0.22);
 }
